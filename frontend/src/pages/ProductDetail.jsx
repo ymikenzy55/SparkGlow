@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import ProductCard from '../components/product/ProductCard'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { formatCedi } from '../utils/currency'
+import { getImageUrl } from '../utils/imageUrl'
 
 function Stars({ rating, size = 14 }) {
   return (
@@ -130,7 +131,7 @@ export default function ProductDetail() {
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              <img className="pd-main-image" src={product.images[activeImg] || product.images[0]} alt={product.name} />
+              <img className="pd-main-image" src={getImageUrl(product.images[activeImg] || product.images[0])} alt={product.name} />
               {product.images.length > 1 && (
                 <>
                   <button className="pd-nav-btn pd-nav-prev" onClick={prevImage}>
@@ -157,7 +158,7 @@ export default function ProductDetail() {
                   <img 
                     key={i} 
                     className={`pd-thumbnail ${i === activeImg ? 'active' : ''}`} 
-                    src={img} 
+                    src={getImageUrl(img)} 
                     alt="" 
                     onClick={() => setActiveImg(i)} 
                   />

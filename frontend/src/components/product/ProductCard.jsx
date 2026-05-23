@@ -3,6 +3,7 @@ import { FiShoppingBag, FiEye } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { useCart } from '../../context/CartContext'
 import { formatCedi } from '../../utils/currency'
+import { getImageUrl } from '../../utils/imageUrl'
 
 function Stars({ rating }) {
   return (
@@ -28,7 +29,7 @@ export default function ProductCard({ product }) {
     <div className="product-card">
       <Link to={`/product/${product.slug || product._id}`}>
         <div className="product-card-img">
-          <img src={product.images?.[0] || 'https://via.placeholder.com/400'} alt={product.name} loading="lazy" />
+          <img src={getImageUrl(product.images?.[0])} alt={product.name} loading="lazy" />
           {discount ? <span className="product-badge product-badge-sale">-{discount}%</span> : <span className="product-badge product-badge-new">New</span>}
           <div className="product-card-actions">
             <button className="product-action-btn" title="Quick view" onClick={e => e.preventDefault()}><FiEye /></button>

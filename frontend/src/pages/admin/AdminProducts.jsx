@@ -5,6 +5,7 @@ import { adminAPI } from '../../services/api'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import { formatCedi } from '../../utils/currency'
+import { getImageUrl } from '../../utils/imageUrl'
 
 const empty = { name: '', description: '', price: '', oldPrice: '', images: [], category: '', stock: '', featured: false, tags: '', isActive: true }
 
@@ -286,7 +287,7 @@ export default function AdminProducts() {
                           style={{ cursor: 'pointer' }}
                         />
                       </td>
-                      <td><img className="img-preview" src={p.images?.[0]} alt="" /></td>
+                      <td><img className="img-preview" src={getImageUrl(p.images?.[0])} alt="" /></td>
                       <td style={{ fontWeight: 500 }}>{p.name}</td>
                       <td>{p.category?.name || '—'}</td>
                       <td><strong style={{ color: 'var(--primary)' }}>{formatCedi(p.price)}</strong></td>
@@ -324,7 +325,7 @@ export default function AdminProducts() {
                       onChange={() => toggleSelectProduct(p._id)}
                       style={{ cursor: 'pointer', marginTop: '4px' }}
                     />
-                    <img src={p.images?.[0]} alt="" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
+                    <img src={getImageUrl(p.images?.[0])} alt="" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
                     <div style={{ flex: 1 }}>
                       <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem' }}>{p.name}</h4>
                       <p style={{ margin: '0 0 4px 0', fontSize: '0.875rem', color: 'var(--text-light)' }}>{p.category?.name || '—'}</p>
