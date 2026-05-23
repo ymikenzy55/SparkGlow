@@ -48,7 +48,7 @@ export default function CartPage() {
           <Link to="/shop" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--dark)', fontWeight: 500, fontSize: '0.9rem' }}>
             <FiArrowLeft size={18} /> Continue Shopping
           </Link>
-          <h2 style={{ margin: 0, fontSize: '1.3rem' }}>Shopping Cart ({items.length})</h2>
+          <h2 style={{ margin: 0, fontSize: '1.3rem' }}>Cart ({items.length})</h2>
           <button onClick={clearCart} style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#e53935', fontSize: '0.9rem', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer' }}>
             <FiTrash2 size={16} /> Clear All
           </button>

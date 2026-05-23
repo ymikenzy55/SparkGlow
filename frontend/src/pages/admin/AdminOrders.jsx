@@ -4,6 +4,7 @@ import { FiEye, FiX } from 'react-icons/fi'
 import { adminAPI } from '../../services/api'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { formatCedi } from '../../utils/currency'
+import { getImageUrl } from '../../utils/imageUrl'
 
 const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
 const statusClass = (s) => ({ pending: 'status-pending', processing: 'status-processing', shipped: 'status-shipped', delivered: 'status-delivered', cancelled: 'status-cancelled' }[s] || 'status-pending')
@@ -133,7 +134,7 @@ export default function AdminOrders() {
                     <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', fontWeight: 600 }}>Order Items</h4>
                     {orderDetail.items.map((item, i) => (
                       <div key={i} style={{ display: 'flex', gap: '12px', padding: '12px', background: 'var(--bg-light)', borderRadius: 'var(--radius-sm)', marginBottom: '8px' }}>
-                        <img src={item.product?.images?.[0] || item.image} alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
+                        <img src={getImageUrl(item.product?.images?.[0] || item.image)} alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
                         <div style={{ flex: 1 }}>
                           <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>{item.name}</div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Qty: {item.quantity}</div>

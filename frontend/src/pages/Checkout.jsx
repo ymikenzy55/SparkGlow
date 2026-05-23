@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { formatCedi } from '../utils/currency'
+import { getImageUrl } from '../utils/imageUrl'
 
 export default function Checkout() {
   const { items, total, clearCart } = useCart()
@@ -231,7 +232,7 @@ export default function Checkout() {
             <h3>Order Summary</h3>
             {items.map(item => (
               <div key={item._id} className="summary-item">
-                <img className="summary-item-img" src={item.images?.[0]} alt={item.name} />
+                <img className="summary-item-img" src={getImageUrl(item.images?.[0])} alt={item.name} />
                 <div>
                   <div className="summary-item-name">{item.name}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Qty: {item.qty}</div>
