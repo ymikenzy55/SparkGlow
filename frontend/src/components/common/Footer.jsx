@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom'
-import { FiInstagram, FiFacebook, FiTwitter, FiYoutube } from 'react-icons/fi'
+import { FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiPhone } from 'react-icons/fi'
+import { FaWhatsapp } from 'react-icons/fa'
+
 export default function Footer() {
+  const phoneNumber = '0246871565'
+  const whatsappNumber = '233246871565' // Ghana country code + number without leading 0
+  
   return (
     <footer className="footer">
       <div className="container">
@@ -38,8 +43,38 @@ export default function Footer() {
           <div className="footer-col">
             <h4>Contact Us</h4>
             <div className="footer-links">
-              <span style={{color:'rgba(255,255,255,0.6)',fontSize:'0.875rem'}}>+1 234 567 890</span>
-              <span style={{color:'rgba(255,255,255,0.6)',fontSize:'0.875rem'}}>hello@sparkglow.com</span>
+              <a 
+                href={`tel:${phoneNumber}`} 
+                style={{
+                  color:'rgba(255,255,255,0.6)',
+                  fontSize:'0.875rem',
+                  display:'flex',
+                  alignItems:'center',
+                  gap:'8px',
+                  transition:'color 0.3s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+              >
+                <FiPhone size={14} /> {phoneNumber}
+              </a>
+              <a 
+                href={`https://wa.me/${whatsappNumber}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color:'rgba(255,255,255,0.6)',
+                  fontSize:'0.875rem',
+                  display:'flex',
+                  alignItems:'center',
+                  gap:'8px',
+                  transition:'color 0.3s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#25D366'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
+              >
+                <FaWhatsapp size={14} /> WhatsApp Us
+              </a>
               <span style={{color:'rgba(255,255,255,0.6)',fontSize:'0.875rem'}}>Mon–Fri, 9am–6pm</span>
             </div>
           </div>

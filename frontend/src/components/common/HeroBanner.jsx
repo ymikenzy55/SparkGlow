@@ -9,7 +9,7 @@ const banners = [
     title: 'Luxurious Bath Experience',
     subtitle: 'Premium Soaps & Body Care',
     description: 'Indulge in our handcrafted soaps made with natural ingredients for a refreshing cleanse.',
-    image: 'https://images.unsplash.com/photo-1600857062241-98e5dba60f2f?w=800&q=80',
+    image: '/banner1.jpg',
     cta: 'Shop Soaps',
     link: '/shop'
   },
@@ -18,7 +18,7 @@ const banners = [
     title: 'Pure & Natural Cleansing',
     subtitle: 'Organic Liquid Soaps',
     description: 'Experience gentle care with our organic liquid soaps that nourish and protect your skin.',
-    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&q=80',
+    image: '/banner2.jpg',
     cta: 'Explore Collection',
     link: '/shop'
   }
