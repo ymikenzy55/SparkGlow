@@ -61,8 +61,8 @@ export default function Navbar() {
       />
       <div className="announcement-bar">
         <span>Need help with your order? Call or WhatsApp us now!</span>
-        <a href="tel:0246871565" className="announcement-link">📞 0246871565</a>
-        <a href="https://wa.me/233246871565" target="_blank" rel="noopener noreferrer" className="announcement-link">💬 WhatsApp</a>
+        <a href="tel:0246871565" className="announcement-link" style={{ color: '#fff' }}>📞 0246871565</a>
+        <a href="https://wa.me/233246871565" target="_blank" rel="noopener noreferrer" className="announcement-link" style={{ color: '#25D366' }}>💬 WhatsApp</a>
       </div>
       <nav className="navbar">
         <div className="navbar-inner">
