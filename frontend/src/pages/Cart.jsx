@@ -93,8 +93,8 @@ export default function CartPage() {
                     cursor: 'pointer',
                     transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#e53935', e.currentTarget.style.color = 'white'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = '#ffebee', e.currentTarget.style.color = '#e53935'}
+                  onMouseEnter={(e) => {e.currentTarget.style.background = '#e53935'; e.currentTarget.style.color = 'white'}}
+                  onMouseLeave={(e) => {e.currentTarget.style.background = '#ffebee'; e.currentTarget.style.color = '#e53935'}}
                 >
                   <FiX size={16} />
                 </button>
@@ -114,7 +114,7 @@ export default function CartPage() {
                   />
                 </Link>
                 
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
                   <div>
                     <Link 
                       to={`/product/${item.slug || item._id}`} 
@@ -124,7 +124,10 @@ export default function CartPage() {
                         fontSize: '1.05rem', 
                         display: 'block', 
                         marginBottom: '8px',
-                        lineHeight: 1.4
+                        lineHeight: 1.4,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
                       }}
                     >
                       {item.name}
@@ -135,7 +138,7 @@ export default function CartPage() {
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', flexWrap: 'wrap', gap: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-light)', borderRadius: 'var(--radius-full)', padding: '6px' }}>
                       <button 
                         onClick={() => updateQty(item._id, item.qty - 1)}
@@ -241,6 +244,45 @@ export default function CartPage() {
         @media (max-width: 968px) {
           .container > div {
             grid-template-columns: 1fr !important;
+          }
+          
+          .container > div > div:last-child {
+            position: static !important;
+            top: auto !important;
+          }
+        }
+        
+        @media (max-width: 640px) {
+          .container {
+            padding: 20px 16px !important;
+          }
+          
+          .container > div > div:first-child > div {
+            padding: 16px !important;
+            gap: 16px !important;
+          }
+          
+          .container > div > div:first-child > div img {
+            width: 90px !important;
+            height: 90px !important;
+          }
+          
+          .container > div > div:first-child > div > div > div:first-child a {
+            font-size: 0.95rem !important;
+            white-space: normal !important;
+          }
+          
+          .container > div > div:first-child > div > div > div:last-child {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+          }
+          
+          .container > div > div:last-child > div {
+            padding: 20px !important;
+          }
+          
+          .container > div > div:last-child h3 {
+            font-size: 1.1rem !important;
           }
         }
       `}</style>

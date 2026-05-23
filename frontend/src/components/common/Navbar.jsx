@@ -5,12 +5,11 @@ import { FiSearch, FiShoppingBag, FiUser, FiMenu, FiX, FiChevronDown, FiLogOut }
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
 import { productAPI, categoryAPI } from '../../services/api'
-import CartDrawer from '../cart/CartDrawer'
 import ConfirmModal from './ConfirmModal'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
-  const { count, setIsOpen: openCart } = useCart()
+  const { count } = useCart()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [catOpen, setCatOpen] = useState(false)
@@ -108,10 +107,10 @@ export default function Navbar() {
                 )}
               </AnimatePresence>
             </div>
-            <button className="icon-btn" onClick={() => openCart(true)}>
+            <Link to="/cart" className="icon-btn">
               <FiShoppingBag />
               {count > 0 && <span className="cart-badge">{count}</span>}
-            </button>
+            </Link>
             {user ? (
               <div className="user-menu-wrap">
                 <button className="icon-btn" onClick={() => setUserMenuOpen(s => !s)}>
@@ -161,7 +160,6 @@ export default function Navbar() {
         </AnimatePresence>
       </nav>
       </div>
-      <CartDrawer />
     </>
   )
 }
