@@ -59,12 +59,13 @@ export default function Navbar() {
         cancelText="Cancel"
         type="warning"
       />
-      <div className="announcement-bar">
-        <span>Need help with your order? Call or WhatsApp us now!</span>
-        <a href="tel:0246871565" className="announcement-link" style={{ color: '#fff' }}>📞 0246871565</a>
-        <a href="https://wa.me/233246871565" target="_blank" rel="noopener noreferrer" className="announcement-link" style={{ color: '#25D366' }}>💬 WhatsApp</a>
-      </div>
-      <nav className="navbar">
+      <div className="navbar-wrapper">
+        <div className="announcement-bar">
+          <span>Need help with your order? Call or WhatsApp us now!</span>
+          <a href="tel:0246871565" className="announcement-link" style={{ color: '#fff' }}>📞 0246871565</a>
+          <a href="https://wa.me/233246871565" target="_blank" rel="noopener noreferrer" className="announcement-link" style={{ color: '#25D366' }}>💬 WhatsApp</a>
+        </div>
+        <nav className="navbar">
         <div className="navbar-inner">
           <Link to="/" className="navbar-logo">
             <img src="/logo.png" alt="SparkGlow" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
@@ -159,6 +160,7 @@ export default function Navbar() {
           )}
         </AnimatePresence>
       </nav>
+      </div>
       <CartDrawer />
     </>
   )
