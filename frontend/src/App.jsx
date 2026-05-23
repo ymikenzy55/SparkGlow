@@ -11,25 +11,50 @@ import LoadingSpinner from './components/common/LoadingSpinner'
 import NetworkError from './components/common/NetworkError'
 import ScrollToTop from './components/common/ScrollToTop'
 
-const Home = lazy(() => import('./pages/Home'))
-const Shop = lazy(() => import('./pages/Shop'))
-const About = lazy(() => import('./pages/About'))
-const CategoryPage = lazy(() => import('./pages/CategoryPage'))
-const ProductDetail = lazy(() => import('./pages/ProductDetail'))
-const CartPage = lazy(() => import('./pages/Cart'))
-const Checkout = lazy(() => import('./pages/Checkout'))
-const Login = lazy(() => import('./pages/Login'))
-const Account = lazy(() => import('./pages/Account'))
-const GoogleAuthSuccess = lazy(() => import('./pages/GoogleAuthSuccess'))
-const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'))
-const Dashboard = lazy(() => import('./pages/admin/Dashboard'))
-const AdminProducts = lazy(() => import('./pages/admin/AdminProducts'))
-const AdminOrders = lazy(() => import('./pages/admin/AdminOrders'))
-const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
-const AdminCategories = lazy(() => import('./pages/admin/AdminCategories'))
-const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'))
-const AdminSales = lazy(() => import('./pages/admin/AdminSales'))
-const AdminMessages = lazy(() => import('./pages/admin/AdminMessages'))
+// Lazy loading with retry logic for chunk loading failures
+const lazyWithRetry = (componentImport) => 
+  lazy(async () => {
+    const pageHasAlreadyBeenForceRefreshed = JSON.parse(
+      window.sessionStorage.getItem('page-has-been-force-refreshed') || 'false'
+    )
+
+    try {
+      const component = await componentImport()
+      window.sessionStorage.setItem('page-has-been-force-refreshed', 'false')
+      return component
+    } catch (error) {
+      if (!pageHasAlreadyBeenForceRefreshed) {
+        // Assuming that the user is not on the latest version of the application
+        // Let's refresh the page immediately
+        window.sessionStorage.setItem('page-has-been-force-refreshed', 'true')
+        return window.location.reload()
+      }
+      // The page has already been reloaded
+      // Assuming that user is already using the latest version of the application
+      // Let's let the application crash and raise the error
+      throw error
+    }
+  })
+
+const Home = lazyWithRetry(() => import('./pages/Home'))
+const Shop = lazyWithRetry(() => import('./pages/Shop'))
+const About = lazyWithRetry(() => import('./pages/About'))
+const CategoryPage = lazyWithRetry(() => import('./pages/CategoryPage'))
+const ProductDetail = lazyWithRetry(() => import('./pages/ProductDetail'))
+const CartPage = lazyWithRetry(() => import('./pages/Cart'))
+const Checkout = lazyWithRetry(() => import('./pages/Checkout'))
+const Login = lazyWithRetry(() => import('./pages/Login'))
+const Account = lazyWithRetry(() => import('./pages/Account'))
+const GoogleAuthSuccess = lazyWithRetry(() => import('./pages/GoogleAuthSuccess'))
+const AdminLayout = lazyWithRetry(() => import('./pages/admin/AdminLayout'))
+const Dashboard = lazyWithRetry(() => import('./pages/admin/Dashboard'))
+const AdminProducts = lazyWithRetry(() => import('./pages/admin/AdminProducts'))
+const AdminOrders = lazyWithRetry(() => import('./pages/admin/AdminOrders'))
+const AdminUsers = lazyWithRetry(() => import('./pages/admin/AdminUsers'))
+const AdminCategories = lazyWithRetry(() => import('./pages/admin/AdminCategories'))
+const AdminSettings = lazyWithRetry(() => import('./pages/admin/AdminSettings'))
+const AdminSales = lazyWithRetry(() => import('./pages/admin/AdminSales'))
+const AdminMessages = lazyWithRetry(() => import('./pages/admin/AdminMessages'))
 
 function PublicLayout() {
   const location = useLocation()
