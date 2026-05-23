@@ -1,0 +1,109 @@
+===============================================
+CLOUDINARY SETUP GUIDE
+===============================================
+
+WHY CLOUDINARY?
+---------------
+Render's free tier has ephemeral storage - uploaded files are deleted when the server restarts.
+Cloudinary provides permanent cloud storage for images with automatic optimization and CDN delivery.
+
+BENEFITS:
+---------
+✅ Images never disappear (permanent storage)
+✅ Automatic image optimization and resizing
+✅ Fast CDN delivery worldwide
+✅ Free tier: 25GB storage + 25GB bandwidth/month
+✅ No server restarts will delete images
+
+SETUP STEPS:
+------------
+
+STEP 1: Create Cloudinary Account
+----------------------------------
+1. Go to: https://cloudinary.com/users/register/free
+2. Sign up for a FREE account
+3. Verify your email address
+4. Login to your dashboard
+
+STEP 2: Get Your Credentials
+-----------------------------
+1. After logging in, you'll see your Dashboard
+2. Copy these three values:
+   - Cloud Name (e.g., "dxyz123abc")
+   - API Key (e.g., "123456789012345")
+   - API Secret (e.g., "abcdefghijklmnopqrstuvwxyz")
+
+STEP 3: Add to Render Environment Variables
+--------------------------------------------
+1. Go to: https://dashboard.render.com
+2. Click on your "sparkglow" backend service
+3. Go to "Environment" tab
+4. Click "Add Environment Variable"
+5. Add these THREE variables:
+
+   Key: CLOUDINARY_CLOUD_NAME
+   Value: [paste your Cloud Name]
+
+   Key: CLOUDINARY_API_KEY
+   Value: [paste your API Key]
+
+   Key: CLOUDINARY_API_SECRET
+   Value: [paste your API Secret]
+
+6. Click "Save Changes"
+7. Render will automatically redeploy (takes 5-10 minutes)
+
+STEP 4: Test the Integration
+-----------------------------
+After Render finishes deploying:
+
+1. Go to your admin panel: https://spark-glow.vercel.app/admin/products
+2. Create a new product or edit existing one
+3. Upload an image
+4. The image will now be stored on Cloudinary!
+5. Check your Cloudinary dashboard - you'll see the uploaded image
+
+STEP 5: Re-upload Existing Images (IMPORTANT!)
+-----------------------------------------------
+All existing product and category images need to be re-uploaded:
+
+1. Go to Admin > Products
+2. For each product:
+   - Click Edit
+   - Upload images again
+   - Click Update
+
+3. Go to Admin > Categories
+4. For each category:
+   - Click Edit
+   - Upload image again
+   - Click Update
+
+VERIFICATION:
+-------------
+✅ Images should now have URLs like:
+   https://res.cloudinary.com/your-cloud-name/image/upload/v1234567890/sparkglow/abc123.jpg
+
+✅ Images will load fast from Cloudinary's CDN
+✅ Images will NEVER disappear after server restarts
+✅ Images are automatically optimized for web
+
+CLOUDINARY DASHBOARD:
+---------------------
+- View all uploaded images: https://cloudinary.com/console/media_library
+- Monitor usage: https://cloudinary.com/console/usage
+- Free tier limits: 25GB storage, 25GB bandwidth/month
+
+TROUBLESHOOTING:
+----------------
+If images don't upload:
+1. Check Render logs for errors
+2. Verify all 3 environment variables are set correctly
+3. Make sure there are no extra spaces in the values
+4. Restart the Render service manually if needed
+
+If you see "Cloudinary configuration error":
+- Double-check your Cloud Name, API Key, and API Secret
+- Make sure they're copied exactly from Cloudinary dashboard
+
+===============================================

@@ -4,8 +4,7 @@ const Category = require('../models/Category');
 const Order = require('../models/Order');
 const Message = require('../models/Message');
 const Notification = require('../models/Notification');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('../config/cloudinary');
 
 exports.getDashboard = async (req, res) => {
   const [totalUsers, totalProducts, totalOrders, revenueResult, recentOrders, lowStock] = await Promise.all([
@@ -45,9 +44,9 @@ exports.getProducts = async (req, res) => {
 exports.createProduct = async (req, res) => {
   const productData = { ...req.body };
   
-  // Handle uploaded images
+  // Handle uploaded images from Cloudinary
   if (req.files && req.files.length > 0) {
-    productData.images = req.files.map(file => `/uploads/products/${file.filename}`);
+    productData.images = req.files.map(file => file.path); // Cloudinary returns full URL in file.path
   } else if (req.body.images) {
     // Handle URL-based images (backward compatibility)
     productData.images = Array.isArray(req.body.images) ? req.body.images : req.body.images.split(',').map(s => s.trim()).filter(Boolean);
@@ -68,21 +67,24 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   const productData = { ...req.body };
   
-  // Handle uploaded images
+  // Handle uploaded images from Cloudinary
   if (req.files && req.files.length > 0) {
-    // Delete old images if they exist
+    // Delete old images from Cloudinary
     const oldProduct = await Product.findById(req.params.id);
     if (oldProduct && oldProduct.images) {
-      oldProduct.images.forEach(img => {
-        if (img.startsWith('/uploads/')) {
-          const filePath = path.join(__dirname, '../../', img);
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
+      for (const img of oldProduct.images) {
+        if (img.includes('cloudinary.com')) {
+          // Extract public_id from Cloudinary URL
+          const publicId = img.split('/').slice(-2).join('/').split('.')[0];
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (err) {
+            console.error('Error deleting image from Cloudinary:', err);
           }
         }
-      });
+      }
     }
-    productData.images = req.files.map(file => `/uploads/products/${file.filename}`);
+    productData.images = req.files.map(file => file.path); // Cloudinary returns full URL
   } else if (req.body.images) {
     // Handle URL-based images (backward compatibility)
     productData.images = Array.isArray(req.body.images) ? req.body.images : req.body.images.split(',').map(s => s.trim()).filter(Boolean);
@@ -104,16 +106,19 @@ exports.deleteProduct = async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);
   if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
   
-  // Delete associated images
+  // Delete associated images from Cloudinary
   if (product.images) {
-    product.images.forEach(img => {
-      if (img.startsWith('/uploads/')) {
-        const filePath = path.join(__dirname, '../../', img);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+    for (const img of product.images) {
+      if (img.includes('cloudinary.com')) {
+        // Extract public_id from Cloudinary URL
+        const publicId = img.split('/').slice(-2).join('/').split('.')[0];
+        try {
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error('Error deleting image from Cloudinary:', err);
         }
       }
-    });
+    }
   }
   
   // Emit socket event
@@ -233,9 +238,9 @@ exports.getCategories = async (req, res) => {
 exports.createCategory = async (req, res) => {
   const categoryData = { ...req.body };
   
-  // Handle uploaded image
+  // Handle uploaded image from Cloudinary
   if (req.file) {
-    categoryData.image = `/uploads/products/${req.file.filename}`;
+    categoryData.image = req.file.path; // Cloudinary returns full URL
   }
   
   const category = await Category.create(categoryData);
@@ -245,17 +250,19 @@ exports.createCategory = async (req, res) => {
 exports.updateCategory = async (req, res) => {
   const categoryData = { ...req.body };
   
-  // Handle uploaded image
+  // Handle uploaded image from Cloudinary
   if (req.file) {
-    // Delete old image if it exists
+    // Delete old image from Cloudinary
     const oldCategory = await Category.findById(req.params.id);
-    if (oldCategory && oldCategory.image && oldCategory.image.startsWith('/uploads/')) {
-      const filePath = path.join(__dirname, '../../', oldCategory.image);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+    if (oldCategory && oldCategory.image && oldCategory.image.includes('cloudinary.com')) {
+      const publicId = oldCategory.image.split('/').slice(-2).join('/').split('.')[0];
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.error('Error deleting image from Cloudinary:', err);
       }
     }
-    categoryData.image = `/uploads/products/${req.file.filename}`;
+    categoryData.image = req.file.path; // Cloudinary returns full URL
   }
   
   const category = await Category.findByIdAndUpdate(req.params.id, categoryData, { new: true });
@@ -267,11 +274,13 @@ exports.deleteCategory = async (req, res) => {
   const category = await Category.findByIdAndDelete(req.params.id);
   if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
   
-  // Delete associated image
-  if (category.image && category.image.startsWith('/uploads/')) {
-    const filePath = path.join(__dirname, '../../', category.image);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+  // Delete associated image from Cloudinary
+  if (category.image && category.image.includes('cloudinary.com')) {
+    const publicId = category.image.split('/').slice(-2).join('/').split('.')[0];
+    try {
+      await cloudinary.uploader.destroy(publicId);
+    } catch (err) {
+      console.error('Error deleting image from Cloudinary:', err);
     }
   }
   
@@ -438,6 +447,6 @@ exports.uploadImages = async (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.status(400).json({ success: false, message: 'No images uploaded' });
   }
-  const imageUrls = req.files.map(file => `/uploads/products/${file.filename}`);
+  const imageUrls = req.files.map(file => file.path); // Cloudinary returns full URLs
   res.json({ success: true, images: imageUrls });
 };
