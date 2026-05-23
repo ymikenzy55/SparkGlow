@@ -13,6 +13,7 @@ import ScrollToTop from './components/common/ScrollToTop'
 
 const Home = lazy(() => import('./pages/Home'))
 const Shop = lazy(() => import('./pages/Shop'))
+const About = lazy(() => import('./pages/About'))
 const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
 const CartPage = lazy(() => import('./pages/Cart'))
@@ -51,6 +52,23 @@ function PublicLayout() {
   )
 }
 
+function CheckoutLayout() {
+  const location = useLocation()
+  return (
+    <AnimatePresence mode="wait">
+      <motion.main
+        key={location.pathname}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <Outlet />
+      </motion.main>
+    </AnimatePresence>
+  )
+}
+
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading } = useAuth()
   if (loading) return <LoadingSpinner fullPage />
@@ -78,14 +96,17 @@ export default function App() {
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<Home />} />
                   <Route path="/shop" element={<Shop />} />
+                  <Route path="/about" element={<About />} />
                   <Route path="/category/:slug" element={<CategoryPage />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
-                  <Route path="/cart" element={<CartPage />} />
-                  <Route path="/checkout" element={<Checkout />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/auth/google/success" element={<GoogleAuthSuccess />} />
                   <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                   <Route path="/account/:tab" element={<ProtectedRoute><Account /></ProtectedRoute>} />
+                </Route>
+                <Route element={<CheckoutLayout />}>
+                  <Route path="/cart" element={<CartPage />} />
+                  <Route path="/checkout" element={<Checkout />} />
                 </Route>
                 <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
                   <Route index element={<Navigate to="dashboard" replace />} />

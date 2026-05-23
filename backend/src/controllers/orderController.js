@@ -2,6 +2,114 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Notification = require('../models/Notification');
 
+// SMS Helper Function (supports multiple providers)
+const sendSMS = async (phone, message) => {
+  try {
+    // Format phone number for international use (add Ghana country code if needed)
+    let formattedPhone = phone;
+    if (phone.startsWith('0')) {
+      formattedPhone = '+233' + phone.substring(1); // Ghana country code
+    } else if (!phone.startsWith('+')) {
+      formattedPhone = '+233' + phone;
+    }
+
+    // OPTION 1: Twilio (Recommended - $15.50 free credits)
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
+      const twilio = require('twilio');
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+      
+      const result = await client.messages.create({
+        body: message,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: formattedPhone,
+      });
+      
+      console.log('SMS sent via Twilio:', result.sid);
+      return { success: true, provider: 'Twilio', sid: result.sid };
+    }
+
+    // OPTION 2: Hubtel (Ghana-based)
+    if (process.env.HUBTEL_CLIENT_ID && process.env.HUBTEL_CLIENT_SECRET) {
+      const axios = require('axios');
+      const auth = Buffer.from(`${process.env.HUBTEL_CLIENT_ID}:${process.env.HUBTEL_CLIENT_SECRET}`).toString('base64');
+      
+      const response = await axios.post(
+        'https://smsc.hubtel.com/v1/messages/send',
+        {
+          From: 'SparkGlow',
+          To: formattedPhone,
+          Content: message,
+        },
+        {
+          headers: {
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      console.log('SMS sent via Hubtel');
+      return { success: true, provider: 'Hubtel', data: response.data };
+    }
+
+    // OPTION 3: Arkesel (Ghana-based)
+    if (process.env.ARKESEL_API_KEY) {
+      const axios = require('axios');
+      
+      const response = await axios.post(
+        'https://sms.arkesel.com/api/v2/sms/send',
+        {
+          sender: 'SparkGlow',
+          recipients: [formattedPhone],
+          message: message,
+        },
+        {
+          headers: {
+            'api-key': process.env.ARKESEL_API_KEY,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      console.log('SMS sent via Arkesel');
+      return { success: true, provider: 'Arkesel', data: response.data };
+    }
+
+    // OPTION 4: Termii (Africa-focused)
+    if (process.env.TERMII_API_KEY) {
+      const axios = require('axios');
+      
+      const response = await axios.post(
+        'https://api.ng.termii.com/api/sms/send',
+        {
+          to: formattedPhone,
+          from: 'SparkGlow',
+          sms: message,
+          type: 'plain',
+          channel: 'generic',
+          api_key: process.env.TERMII_API_KEY,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      console.log('SMS sent via Termii');
+      return { success: true, provider: 'Termii', data: response.data };
+    }
+
+    // No SMS provider configured
+    console.log('SMS not configured. Would send to', formattedPhone, ':', message);
+    return { success: true, message: 'SMS credentials not configured (development mode)' };
+    
+  } catch (error) {
+    console.error('SMS Error:', error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 exports.createOrder = async (req, res) => {
   const { items, shippingAddress, paymentMethod, guestInfo, customerInfo, notes } = req.body;
   if (!items || items.length === 0)
@@ -80,6 +188,13 @@ exports.createOrder = async (req, res) => {
   // Decrement stock
   for (const item of items) {
     await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity, sold: item.quantity } });
+  }
+
+  // Send SMS confirmation to customer
+  if (finalCustomerInfo.phone) {
+    const orderRef = order._id.toString().slice(-6).toUpperCase();
+    const smsMessage = `Thank you for your order at SparkGlow! Your order #${orderRef} has been received. Total: GH₵ ${total.toFixed(2)}. We'll contact you shortly. Call 0246871565 for inquiries.`;
+    await sendSMS(finalCustomerInfo.phone, smsMessage);
   }
 
   // Check for low stock and create notifications

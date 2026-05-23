@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { FiHome, FiShoppingCart } from 'react-icons/fi'
 import { orderAPI } from '../services/api'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import { formatCedi } from '../utils/currency'
-import Breadcrumb from '../components/common/Breadcrumb'
 
 export default function Checkout() {
   const { items, total, clearCart } = useCart()
@@ -47,8 +47,22 @@ export default function Checkout() {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '') // Remove non-digits
+    if (value.length <= 10) {
+      set('phone', value)
+    }
+  }
+
   const submit = async (e) => {
     e.preventDefault()
+    
+    // Validate phone number
+    if (form.phone.length !== 10) {
+      toast.error('Phone number must be exactly 10 digits')
+      return
+    }
+    
     setLoading(true)
     try {
       const orderData = {
@@ -78,8 +92,14 @@ export default function Checkout() {
       
       const res = await orderAPI.create(orderData)
       clearCart()
-      toast.success('Order placed successfully!')
-      navigate(`/account`)
+      toast.success('Order placed successfully! Check your phone for confirmation.')
+      
+      // Redirect guest users to homepage, logged-in users to account
+      if (!user) {
+        setTimeout(() => navigate('/'), 1500)
+      } else {
+        navigate('/account')
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to place order')
     }
@@ -88,7 +108,13 @@ export default function Checkout() {
 
   return (
     <div className="container" style={{ padding: '40px 24px' }}>
-      <Breadcrumb />
+      {/* Breadcrumb */}
+      <div className="breadcrumb" style={{ marginBottom: '24px' }}>
+        <Link to="/"><FiHome size={14} /> Home</Link> ›
+        <Link to="/cart"><FiShoppingCart size={14} /> Cart</Link> ›
+        <span>Checkout</span>
+      </div>
+      
       <h2 style={{ marginBottom: '28px' }}>Checkout</h2>
       <form onSubmit={submit}>
         <div className="checkout-grid">
@@ -130,9 +156,15 @@ export default function Checkout() {
                     type="tel" 
                     className="form-input" 
                     value={form.phone} 
-                    onChange={e => set('phone', e.target.value)} 
-                    placeholder="+233 XX XXX XXXX"
+                    onChange={handlePhoneChange} 
+                    placeholder="0XXXXXXXXX"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
+                    title="Please enter exactly 10 digits"
                   />
+                  <small style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '4px', display: 'block' }}>
+                    {form.phone.length}/10 digits
+                  </small>
                 </div>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiShoppingBag, FiMinus, FiPlus, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { FiShoppingBag, FiMinus, FiPlus, FiChevronLeft, FiChevronRight, FiTruck, FiShield, FiRefreshCw } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import { productAPI } from '../services/api'
 import { useCart } from '../context/CartContext'
@@ -65,10 +65,8 @@ export default function ProductDetail() {
 
     if (Math.abs(swipeDistance) > minSwipeDistance) {
       if (swipeDistance > 0) {
-        // Swipe left - next image
         setActiveImg(prev => (prev + 1) % product.images.length)
       } else {
-        // Swipe right - previous image
         setActiveImg(prev => (prev - 1 + product.images.length) % product.images.length)
       }
     }
@@ -113,90 +111,40 @@ export default function ProductDetail() {
 
   return (
     <div>
-      <div className="container" style={{ padding: '40px 24px' }}>
+      <div className="container" style={{ padding: '32px 24px' }}>
+        {/* Breadcrumb */}
         <div className="breadcrumb">
           <Link to="/">Home</Link> ›
           <Link to="/shop">Shop</Link> ›
           {product.category && <><Link to={`/category/${product.category.slug}`}>{product.category.name}</Link> › </>}
           <span>{product.name}</span>
         </div>
-        <div className="product-detail-grid">
-          {/* Gallery */}
-          <motion.div className="product-gallery" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+
+        {/* Product Detail Grid */}
+        <div className="pd-grid">
+          {/* Left: Image Gallery */}
+          <div className="pd-gallery-section">
             <div 
-              style={{ position: 'relative' }}
+              className="pd-main-image-wrapper"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              <img className="product-main-img" src={product.images[activeImg] || product.images[0]} alt={product.name} />
+              <img className="pd-main-image" src={product.images[activeImg] || product.images[0]} alt={product.name} />
               {product.images.length > 1 && (
                 <>
-                  <button
-                    onClick={prevImage}
-                    style={{
-                      position: 'absolute',
-                      left: '10px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'rgba(255,255,255,0.9)',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '40px',
-                      height: '40px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                      zIndex: 2
-                    }}
-                  >
+                  <button className="pd-nav-btn pd-nav-prev" onClick={prevImage}>
                     <FiChevronLeft size={20} />
                   </button>
-                  <button
-                    onClick={nextImage}
-                    style={{
-                      position: 'absolute',
-                      right: '10px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'rgba(255,255,255,0.9)',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '40px',
-                      height: '40px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-                      zIndex: 2
-                    }}
-                  >
+                  <button className="pd-nav-btn pd-nav-next" onClick={nextImage}>
                     <FiChevronRight size={20} />
                   </button>
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    display: 'flex',
-                    gap: '6px',
-                    zIndex: 2
-                  }}>
+                  <div className="pd-image-indicators">
                     {product.images.map((_, i) => (
                       <div
                         key={i}
                         onClick={() => setActiveImg(i)}
-                        style={{
-                          width: i === activeImg ? '24px' : '8px',
-                          height: '8px',
-                          borderRadius: '4px',
-                          background: i === activeImg ? 'var(--primary)' : 'rgba(255,255,255,0.7)',
-                          cursor: 'pointer',
-                          transition: 'all 0.3s ease'
-                        }}
+                        className={`pd-indicator ${i === activeImg ? 'active' : ''}`}
                       />
                     ))}
                   </div>
@@ -204,90 +152,180 @@ export default function ProductDetail() {
               )}
             </div>
             {product.images.length > 1 && (
-              <div className="product-thumbs">
+              <div className="pd-thumbnails">
                 {product.images.map((img, i) => (
-                  <img key={i} className={`product-thumb ${i === activeImg ? 'active' : ''}`} src={img} alt="" onClick={() => setActiveImg(i)} />
+                  <img 
+                    key={i} 
+                    className={`pd-thumbnail ${i === activeImg ? 'active' : ''}`} 
+                    src={img} 
+                    alt="" 
+                    onClick={() => setActiveImg(i)} 
+                  />
                 ))}
               </div>
             )}
-          </motion.div>
-          {/* Info */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-            {product.category && <div className="product-category-tag">{product.category.name}</div>}
-            <div className="product-info-header">
-              <h1>{product.name}</h1>
-            </div>
+          </div>
+
+          {/* Right: Product Info */}
+          <div className="pd-info-section">
+            {/* Category Badge */}
+            {product.category && (
+              <div className="pd-category-badge">{product.category.name}</div>
+            )}
+
+            {/* Product Name */}
+            <h1 className="pd-title">{product.name}</h1>
+
+            {/* Rating */}
             {product.numReviews > 0 && (
-              <div className="product-rating-row">
+              <div className="pd-rating">
                 <Stars rating={product.rating} size={16} />
-                <span>({product.numReviews} reviews)</span>
+                <span className="pd-rating-text">({product.numReviews} {product.numReviews === 1 ? 'review' : 'reviews'})</span>
               </div>
             )}
-            <div className="product-price-wrap">
-              <span className="product-price">{formatCedi(product.price)}</span>
-              {product.comparePrice && <span className="product-compare-price">{formatCedi(product.comparePrice)}</span>}
-              {discount && <span className="product-discount-badge">-{discount}%</span>}
+
+            {/* Price */}
+            <div className="pd-price-section">
+              <div className="pd-price-main">{formatCedi(product.price)}</div>
+              {product.comparePrice && (
+                <div className="pd-price-compare">{formatCedi(product.comparePrice)}</div>
+              )}
+              {discount && (
+                <div className="pd-discount-badge">Save {discount}%</div>
+              )}
             </div>
-            <p className="product-description">{product.description}</p>
-            <div style={{ padding: '16px', background: 'var(--bg-light)', borderRadius: 'var(--radius-sm)', marginBottom: '20px', fontSize: '0.875rem', color: 'var(--text-light)' }}>
-              {product.stock > 0 ? <span style={{ color: '#2e7d32', fontWeight: 600 }}>✓ In Stock ({product.stock} available)</span> : <span style={{ color: '#e53935', fontWeight: 600 }}>✗ Out of Stock</span>}
+
+            {/* Stock Status */}
+            <div className={`pd-stock ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
+              {product.stock > 0 ? (
+                <>
+                  <span className="pd-stock-icon">✓</span>
+                  <span>In Stock ({product.stock} available)</span>
+                </>
+              ) : (
+                <>
+                  <span className="pd-stock-icon">✗</span>
+                  <span>Out of Stock</span>
+                </>
+              )}
             </div>
-            <div className="product-qty-row">
-              <div className="qty-control">
-                <button onClick={() => setQty(q => Math.max(1, q - 1))}><FiMinus size={12} /></button>
-                <span>{qty}</span>
-                <button onClick={() => setQty(q => Math.min(product.stock, q + 1))}><FiPlus size={12} /></button>
+
+            {/* Description */}
+            <div className="pd-description">
+              <h3>Description</h3>
+              <p>{product.description}</p>
+            </div>
+
+            {/* Quantity & Add to Cart */}
+            <div className="pd-actions">
+              <div className="pd-qty-selector">
+                <button onClick={() => setQty(q => Math.max(1, q - 1))} disabled={product.stock === 0}>
+                  <FiMinus size={14} />
+                </button>
+                <span className="pd-qty-value">{qty}</span>
+                <button onClick={() => setQty(q => Math.min(product.stock, q + 1))} disabled={product.stock === 0}>
+                  <FiPlus size={14} />
+                </button>
               </div>
-              <button className="product-add-btn" onClick={handleAddToCart} disabled={product.stock === 0}>
-                <FiShoppingBag size={16} /> {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+              <button className="pd-add-to-cart" onClick={handleAddToCart} disabled={product.stock === 0}>
+                <FiShoppingBag size={18} />
+                <span>{product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
               </button>
             </div>
+
+            {/* Features */}
+            <div className="pd-features">
+              <div className="pd-feature">
+                <FiTruck size={20} />
+                <div>
+                  <strong>Free Delivery</strong>
+                  <span>On orders over GH₵ 50</span>
+                </div>
+              </div>
+              <div className="pd-feature">
+                <FiShield size={20} />
+                <div>
+                  <strong>Secure Payment</strong>
+                  <span>100% secure transactions</span>
+                </div>
+              </div>
+              <div className="pd-feature">
+                <FiRefreshCw size={20} />
+                <div>
+                  <strong>Easy Returns</strong>
+                  <span>7-day return policy</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tags */}
             {product.tags?.length > 0 && (
-              <div className="product-tags">
-                {product.tags.map(tag => <span key={tag} className="product-tag">#{tag}</span>)}
+              <div className="pd-tags">
+                {product.tags.map(tag => <span key={tag} className="pd-tag">#{tag}</span>)}
               </div>
             )}
-          </motion.div>
+          </div>
         </div>
 
-        {/* Reviews */}
-        <div style={{ marginTop: '60px' }}>
-          <h2 style={{ marginBottom: '24px' }}>Customer <span style={{ color: 'var(--primary)' }}>Reviews</span></h2>
-          {product.reviews.length === 0 && <p style={{ color: 'var(--text-light)' }}>No reviews yet. Be the first!</p>}
-          {product.reviews.map(r => (
-            <div key={r._id} className="review-card">
-              <div className="review-header">
-                <span className="reviewer-name">{r.name}</span>
-                <span className="review-date">{new Date(r.createdAt).toLocaleDateString()}</span>
-              </div>
-              <Stars rating={r.rating} />
-              <p className="review-comment" style={{ marginTop: '8px' }}>{r.comment}</p>
+        {/* Reviews Section */}
+        <div className="pd-reviews-section">
+          <h2 className="pd-section-title">Customer <span>Reviews</span></h2>
+          
+          {product.reviews.length === 0 && (
+            <div className="pd-no-reviews">
+              <p>No reviews yet. Be the first to share your experience!</p>
             </div>
-          ))}
+          )}
+
+          <div className="pd-reviews-grid">
+            {product.reviews.map(r => (
+              <div key={r._id} className="pd-review-card">
+                <div className="pd-review-header">
+                  <div className="pd-reviewer-avatar">{r.name[0].toUpperCase()}</div>
+                  <div className="pd-reviewer-info">
+                    <div className="pd-reviewer-name">{r.name}</div>
+                    <div className="pd-review-date">{new Date(r.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                  </div>
+                  <Stars rating={r.rating} size={14} />
+                </div>
+                <p className="pd-review-comment">{r.comment}</p>
+              </div>
+            ))}
+          </div>
+
           {user && (
-            <div className="review-form">
-              <h3 style={{ marginBottom: '16px', fontSize: '1.1rem' }}>Write a Review</h3>
+            <div className="pd-review-form">
+              <h3>Write a Review</h3>
               <form onSubmit={handleReview}>
                 <div className="form-group">
-                  <label className="form-label">Rating</label>
+                  <label className="form-label">Your Rating</label>
                   <select className="form-select" value={review.rating} onChange={e => setReview(r => ({ ...r, rating: Number(e.target.value) }))}>
                     {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} Star{n !== 1 ? 's' : ''}</option>)}
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Comment</label>
-                  <textarea className="form-input" rows={4} required value={review.comment} onChange={e => setReview(r => ({ ...r, comment: e.target.value }))} placeholder="Share your experience…" />
+                  <label className="form-label">Your Review</label>
+                  <textarea 
+                    className="form-input" 
+                    rows={4} 
+                    required 
+                    value={review.comment} 
+                    onChange={e => setReview(r => ({ ...r, comment: e.target.value }))} 
+                    placeholder="Share your experience with this product..."
+                  />
                 </div>
-                <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Submitting…' : 'Submit Review'}</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? 'Submitting…' : 'Submit Review'}
+                </button>
               </form>
             </div>
           )}
         </div>
 
-        {/* Related */}
+        {/* Related Products */}
         {related.length > 0 && (
-          <div style={{ marginTop: '60px' }}>
-            <h2 style={{ marginBottom: '28px' }}>You May Also <span style={{ color: 'var(--primary)' }}>Like</span></h2>
+          <div className="pd-related-section">
+            <h2 className="pd-section-title">You May Also <span>Like</span></h2>
             <div className="products-grid">
               {related.map(p => <ProductCard key={p._id} product={p} />)}
             </div>

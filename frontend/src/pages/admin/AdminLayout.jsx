@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { FiGrid, FiBox, FiShoppingBag, FiUsers, FiTag, FiMenu, FiX, FiLogOut, FiBell, FiSettings, FiDollarSign, FiMail, FiExternalLink } from 'react-icons/fi'
+import { FiGrid, FiBox, FiShoppingBag, FiUsers, FiTag, FiMenu, FiX, FiLogOut, FiBell, FiSettings, FiMail, FiExternalLink } from 'react-icons/fi'
+import { GiCash } from 'react-icons/gi'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
 import { adminAPI } from '../../services/api'
@@ -9,7 +10,7 @@ const navItems = [
   { to: 'dashboard', icon: FiGrid, label: 'Dashboard' },
   { to: 'products', icon: FiBox, label: 'Products' },
   { to: 'orders', icon: FiShoppingBag, label: 'Orders' },
-  { to: 'sales', icon: FiDollarSign, label: 'Sales' },
+  { to: 'sales', icon: GiCash, label: 'Sales' },
   { to: 'users', icon: FiUsers, label: 'Users' },
   { to: 'categories', icon: FiTag, label: 'Categories' },
   { to: 'messages', icon: FiMail, label: 'Messages' },
@@ -120,9 +121,29 @@ export default function AdminLayout() {
             <FiExternalLink size={16} /> Visit Website
           </a>
         </nav>
-        <div style={{ padding: '16px 12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>{user?.name}</div>
-          <button className="admin-nav-item" style={{ width: '100%' }} onClick={() => { logout(); navigate('/login') }}><FiLogOut size={16} /> Logout</button>
+        <div style={{ marginTop: 'auto' }}>
+          <div style={{ padding: '16px 12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>{user?.name}</div>
+            <button className="admin-nav-item" style={{ width: '100%' }} onClick={() => { logout(); navigate('/login') }}><FiLogOut size={16} /> Logout</button>
+          </div>
+          <a 
+            href="https://portfolio-sooty-eight-54.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{
+              display: 'block',
+              padding: '12px',
+              textAlign: 'center',
+              fontSize: '0.75rem',
+              color: 'rgba(255,255,255,0.4)',
+              borderTop: '1px solid rgba(255,255,255,0.05)',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
+          >
+            Built by MiqroTek
+          </a>
         </div>
       </div>
       <div className="admin-overlay" style={{ display: sideOpen ? 'block' : 'none' }} onClick={() => setSideOpen(false)} />
@@ -166,7 +187,7 @@ export default function AdminLayout() {
                     style={{ 
                       position: 'fixed', 
                       inset: 0, 
-                      zIndex: 999 
+                      zIndex: 9998 
                     }} 
                     onClick={() => setShowNotifications(false)} 
                   />
@@ -178,11 +199,11 @@ export default function AdminLayout() {
                     width: '320px',
                     maxHeight: '400px',
                     overflowY: 'auto',
-                    background: 'var(--bg-card)',
+                    background: '#fff',
                     border: '1px solid var(--border)',
                     borderRadius: 'var(--radius-md)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    zIndex: 1000
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                    zIndex: 9999
                   }}>
                     <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <h4 style={{ margin: 0, fontSize: '0.9rem' }}>Notifications</h4>

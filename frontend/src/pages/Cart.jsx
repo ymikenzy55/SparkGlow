@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiMinus, FiPlus, FiTrash2, FiShoppingBag, FiArrowRight } from 'react-icons/fi'
+import { FiMinus, FiPlus, FiTrash2, FiShoppingBag, FiArrowRight, FiHome } from 'react-icons/fi'
 import { useCart } from '../context/CartContext'
-import Breadcrumb from '../components/common/Breadcrumb'
 import { formatCedi } from '../utils/currency'
 
 export default function CartPage() {
@@ -22,7 +21,12 @@ export default function CartPage() {
 
   return (
     <div className="container" style={{ padding: '40px 24px' }}>
-      <Breadcrumb />
+      {/* Breadcrumb */}
+      <div className="breadcrumb" style={{ marginBottom: '24px' }}>
+        <Link to="/"><FiHome size={14} /> Home</Link> ›
+        <span>Shopping Cart</span>
+      </div>
+      
       <h2 style={{ marginBottom: '28px' }}>Shopping <span style={{ color: 'var(--primary)' }}>Cart</span></h2>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '28px', alignItems: 'start' }}>
         <div>

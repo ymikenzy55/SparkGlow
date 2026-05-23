@@ -106,7 +106,7 @@ export default function Home() {
                 <p>Pamper yourself with our premium handcrafted soap collection.</p>
                 <Link to="/shop" className="btn btn-dark btn-sm">Shop Now <FiArrowRight /></Link>
               </div>
-              <img src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=500&q=80" alt="Bath soaps" />
+              <img src="/about1.jpg" alt="Bath soaps" />
             </motion.div>
             <motion.div className="promo-card promo-card-dark" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2, duration: 0.6 }}>
               <div className="promo-content">
@@ -115,7 +115,7 @@ export default function Home() {
                 <p>Gentle cleansing with natural ingredients for healthy skin.</p>
                 <Link to="/shop" className="btn btn-primary btn-sm">Shop Now <FiArrowRight /></Link>
               </div>
-              <img src="https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=500&q=80" alt="Liquid soaps" />
+              <img src="/about2.jpg" alt="Liquid soaps" />
             </motion.div>
           </div>
         </div>
@@ -126,9 +126,9 @@ export default function Home() {
         <div className="container">
           <div className="about-grid">
             <motion.div className="about-images" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-              <img className="about-img-1" src="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&q=80" alt="Soap products" />
-              <img className="about-img-2" src="https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=400&q=80" alt="Bath soaps" />
-              <img className="about-img-3" src="https://images.unsplash.com/photo-1600857062241-98e5dba60f2f?w=400&q=80" alt="Bathing" />
+              <img className="about-img-1" src="/about1.jpg" alt="Soap products" />
+              <img className="about-img-2" src="/about2.jpg" alt="Bath soaps" />
+              <img className="about-img-3" src="/about3.jpg" alt="Natural ingredients" />
               <div className="about-badge">✦ Trusted by 50,000+ customers</div>
             </motion.div>
             <motion.div className="about-content" initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
@@ -143,20 +143,6 @@ export default function Home() {
               </div>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      {/* Newsletter */}
-      <section className="newsletter">
-        <div className="container">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-            <h2>Stay Fresh & <span style={{ color: '#fff' }}>Clean</span></h2>
-            <p>Subscribe for exclusive deals, bath tips, and new arrivals</p>
-            <form className="newsletter-form" onSubmit={e => e.preventDefault()}>
-              <input type="email" className="newsletter-input" placeholder="Enter your email address" />
-              <button type="submit" className="btn btn-gold">Subscribe</button>
-            </form>
-          </motion.div>
         </div>
       </section>
     </div>

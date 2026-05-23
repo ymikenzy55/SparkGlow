@@ -70,7 +70,7 @@ export default function AdminOrders() {
                 <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
                 <tbody>
                   {orders.map(o => (
-                    <tr key={o._id}>
+                    <tr key={o._id} onClick={() => loadOrderDetail(o._id)} style={{ cursor: 'pointer' }}>
                       <td style={{ fontWeight: 600, fontSize: '0.8rem' }}>#{o._id.slice(-8).toUpperCase()}</td>
                       <td>
                         <div style={{ fontWeight: 500 }}>{o.user?.name || o.guestInfo?.name || o.customerInfo?.name || 'Guest'}</div>
@@ -79,13 +79,13 @@ export default function AdminOrders() {
                       <td>{o.items.length} item{o.items.length > 1 ? 's' : ''}</td>
                       <td><strong style={{ color: 'var(--primary)' }}>{formatCedi(o.total)}</strong></td>
                       <td><span className={o.paymentStatus === 'paid' ? 'badge badge-green' : 'badge badge-gold'}>{o.paymentStatus}</span></td>
-                      <td>
+                      <td onClick={(e) => e.stopPropagation()}>
                         <select className="form-select" style={{ padding: '4px 8px', fontSize: '0.8rem', width: 'auto' }} value={o.status} onChange={e => updateStatus(o._id, e.target.value)}>
                           {statuses.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </td>
                       <td style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
-                      <td>
+                      <td onClick={(e) => e.stopPropagation()}>
                         <button className="btn btn-sm" style={{ background: 'var(--bg-light)' }} onClick={() => loadOrderDetail(o._id)}>
                           <FiEye size={13} />
                         </button>
@@ -159,9 +159,20 @@ export default function AdminOrders() {
                   </div>
 
                   <div style={{ marginTop: '16px', fontSize: '0.875rem' }}>
+                    <div style={{ marginBottom: '12px' }}>
+                      <strong style={{ display: 'block', marginBottom: '8px' }}>Update Order Status:</strong>
+                      <select 
+                        className="form-select" 
+                        style={{ width: '100%', padding: '10px 14px', fontSize: '0.875rem' }} 
+                        value={orderDetail.status} 
+                        onChange={e => updateStatus(orderDetail._id, e.target.value)}
+                      >
+                        {statuses.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
                     <div style={{ marginBottom: '6px' }}><strong>Payment Method:</strong> {orderDetail.paymentMethod.toUpperCase()}</div>
                     <div style={{ marginBottom: '6px' }}><strong>Payment Status:</strong> <span className={orderDetail.paymentStatus === 'paid' ? 'badge badge-green' : 'badge badge-gold'}>{orderDetail.paymentStatus}</span></div>
-                    <div><strong>Order Status:</strong> <span className={`order-status ${statusClass(orderDetail.status)}`}>{orderDetail.status}</span></div>
+                    <div><strong>Current Status:</strong> <span className={`order-status ${statusClass(orderDetail.status)}`}>{orderDetail.status}</span></div>
                   </div>
                 </>
               )}

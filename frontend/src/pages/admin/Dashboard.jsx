@@ -21,10 +21,26 @@ export default function Dashboard() {
   return (
     <div>
       <div className="stat-cards">
-        <div className="stat-card"><div className="stat-card-icon pink"><FiUsers /></div><h4>{stats.totalUsers}</h4><p>Total Users</p></div>
-        <div className="stat-card"><div className="stat-card-icon gold"><FiBox /></div><h4>{stats.totalProducts}</h4><p>Products</p></div>
-        <div className="stat-card"><div className="stat-card-icon blue"><FiShoppingBag /></div><h4>{stats.totalOrders}</h4><p>Total Orders</p></div>
-        <div className="stat-card"><div className="stat-card-icon green"><FiTrendingUp /></div><h4>{formatCedi(stats.totalRevenue)}</h4><p>Revenue</p></div>
+        <div className="stat-card">
+          <FiUsers size={32} style={{ color: 'var(--primary)', marginBottom: '12px' }} />
+          <h4>{stats.totalUsers}</h4>
+          <p>Total Users</p>
+        </div>
+        <div className="stat-card">
+          <FiBox size={32} style={{ color: 'var(--primary)', marginBottom: '12px' }} />
+          <h4>{stats.totalProducts}</h4>
+          <p>Products</p>
+        </div>
+        <div className="stat-card">
+          <FiShoppingBag size={32} style={{ color: 'var(--primary)', marginBottom: '12px' }} />
+          <h4>{stats.totalOrders}</h4>
+          <p>Total Orders</p>
+        </div>
+        <div className="stat-card">
+          <FiTrendingUp size={32} style={{ color: 'var(--primary)', marginBottom: '12px' }} />
+          <h4>{formatCedi(stats.totalRevenue)}</h4>
+          <p>Revenue</p>
+        </div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
         <div className="admin-section">

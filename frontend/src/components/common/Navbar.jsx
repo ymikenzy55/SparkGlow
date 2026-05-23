@@ -72,6 +72,7 @@ export default function Navbar() {
           <ul className="navbar-nav">
             <li><NavLink to="/" end className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>Home</NavLink></li>
             <li><NavLink to="/shop" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>Shop</NavLink></li>
+            <li><NavLink to="/about" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>About</NavLink></li>
             <li className="dropdown-parent" onMouseEnter={() => setCatOpen(true)} onMouseLeave={() => setCatOpen(false)}>
               <button className="nav-link">Categories <FiChevronDown size={14} style={{ transform: catOpen ? 'rotate(180deg)' : 'none', transition: '0.2s' }} /></button>
               <AnimatePresence>
@@ -142,6 +143,7 @@ export default function Navbar() {
             <motion.div className="mobile-menu" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
               <Link to="/" className="mobile-nav-link" onClick={() => setMenuOpen(false)}>Home</Link>
               <Link to="/shop" className="mobile-nav-link" onClick={() => setMenuOpen(false)}>Shop</Link>
+              <Link to="/about" className="mobile-nav-link" onClick={() => setMenuOpen(false)}>About</Link>
               <div className="mobile-nav-label">Categories</div>
               {categories.map(c => <Link key={c._id} to={`/category/${c.slug}`} className="mobile-nav-link indent" onClick={() => setMenuOpen(false)}>{c.name}</Link>)}
               {user ? (

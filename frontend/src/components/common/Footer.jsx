@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
-import { FiInstagram, FiFacebook, FiTwitter, FiYoutube, FiPhone } from 'react-icons/fi'
-import { FaWhatsapp } from 'react-icons/fa'
+import { FiInstagram, FiFacebook, FiYoutube, FiPhone } from 'react-icons/fi'
+import { FaWhatsapp, FaTiktok } from 'react-icons/fa'
 
 export default function Footer() {
   const phoneNumber = '0246871565'
@@ -18,7 +18,7 @@ export default function Footer() {
             <div className="footer-socials">
               <a href="#" className="footer-social-btn"><FiInstagram /></a>
               <a href="#" className="footer-social-btn"><FiFacebook /></a>
-              <a href="#" className="footer-social-btn"><FiTwitter /></a>
+              <a href="#" className="footer-social-btn"><FaTiktok /></a>
               <a href="#" className="footer-social-btn"><FiYoutube /></a>
             </div>
           </div>
@@ -27,8 +27,8 @@ export default function Footer() {
             <div className="footer-links">
               <Link to="/">Home</Link>
               <Link to="/shop">Shop</Link>
-              <Link to="/category/skin-care">Skin Care</Link>
-              <Link to="/category/makeup">Makeup</Link>
+              <Link to="/about">About Us</Link>
+              <Link to="/cart">Cart</Link>
             </div>
           </div>
           <div className="footer-col">
@@ -85,6 +85,27 @@ export default function Footer() {
             <a href="#">Privacy Policy</a>
             <a href="#">Terms of Service</a>
           </div>
+        </div>
+        <div style={{ 
+          textAlign: 'center', 
+          paddingTop: '16px', 
+          marginTop: '16px', 
+          borderTop: '1px solid rgba(255,255,255,0.1)' 
+        }}>
+          <a 
+            href="https://portfolio-sooty-eight-54.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{
+              fontSize: '0.8rem',
+              color: 'rgba(255,255,255,0.4)',
+              transition: 'color 0.3s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
+          >
+            Built by MiqroTek
+          </a>
         </div>
       </div>
     </footer>
