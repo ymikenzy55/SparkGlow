@@ -179,6 +179,41 @@ exports.getUsers = async (req, res) => {
   res.json({ success: true, users, total, pages: Math.ceil(total / Number(limit)) });
 };
 
+exports.getUserDetail = async (req, res) => {
+  const user = await User.findById(req.params.id).select('-password').lean();
+  if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+  
+  // Get user's orders
+  const orders = await Order.find({ user: req.params.id })
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .select('total status paymentStatus createdAt items')
+    .lean();
+  
+  // Calculate user stats
+  const stats = await Order.aggregate([
+    { $match: { user: user._id, paymentStatus: 'paid' } },
+    {
+      $group: {
+        _id: null,
+        totalSpent: { $sum: '$total' },
+        totalOrders: { $sum: 1 }
+      }
+    }
+  ]);
+  
+  const userStats = stats[0] || { totalSpent: 0, totalOrders: 0 };
+  
+  res.json({ 
+    success: true, 
+    user: {
+      ...user,
+      stats: userStats,
+      recentOrders: orders
+    }
+  });
+};
+
 exports.updateUser = async (req, res) => {
   const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!user) return res.status(404).json({ success: false, message: 'User not found' });

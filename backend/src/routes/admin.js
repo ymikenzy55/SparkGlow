@@ -16,6 +16,7 @@ router.get('/orders', ctrl.getOrders);
 router.get('/orders/:id', ctrl.getOrderDetail);
 router.put('/orders/:id', ctrl.updateOrder);
 router.get('/users', ctrl.getUsers);
+router.get('/users/:id', ctrl.getUserDetail);
 router.put('/users/:id', ctrl.updateUser);
 router.delete('/users/:id', ctrl.deleteUser);
 router.get('/categories', ctrl.getCategories);
