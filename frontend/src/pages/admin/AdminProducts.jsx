@@ -17,7 +17,6 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(empty)
   const [search, setSearch] = useState('')
-  const [searchInput, setSearchInput] = useState('')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [saving, setSaving] = useState(false)
@@ -34,6 +33,7 @@ export default function AdminProducts() {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
   const categoryImageInputRef = useRef(null)
+  const searchTimeoutRef = useRef(null)
 
   const load = () => {
     setLoading(true)
@@ -52,10 +52,20 @@ export default function AdminProducts() {
 
   useEffect(() => { load() }, [page, search])
 
-  const handleSearch = (e) => {
-    e.preventDefault()
-    setSearch(searchInput)
+  const handleSearchChange = (e) => {
+    const value = e.target.value
+    setSearch(value)
     setPage(1)
+    
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    
+    // Set new timeout for search
+    searchTimeoutRef.current = setTimeout(() => {
+      load()
+    }, 300)
   }
 
   const createCategory = async () => {
@@ -228,18 +238,13 @@ export default function AdminProducts() {
         <div className="admin-section-header">
           <h3>Products ({total})</h3>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
-              <div className="admin-search">
-                <input 
-                  placeholder="Search products…" 
-                  value={searchInput} 
-                  onChange={e => setSearchInput(e.target.value)} 
-                />
-              </div>
-              <button type="submit" className="btn btn-sm" style={{ background: 'var(--primary)', color: '#fff' }}>
-                Search
-              </button>
-            </form>
+            <div className="admin-search">
+              <input 
+                placeholder="Search products…" 
+                value={search} 
+                onChange={handleSearchChange}
+              />
+            </div>
             {selectedProducts.length > 0 && (
               <button 
                 className="btn btn-danger btn-sm" 
