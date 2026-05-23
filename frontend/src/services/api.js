@@ -80,8 +80,18 @@ export const adminAPI = {
   updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   getCategories: () => api.get('/admin/categories'),
-  createCategory: (data) => api.post('/admin/categories', data),
-  updateCategory: (id, data) => api.put(`/admin/categories/${id}`, data),
+  createCategory: (data) => {
+    if (data instanceof FormData) {
+      return api.post('/admin/categories', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+    }
+    return api.post('/admin/categories', data)
+  },
+  updateCategory: (id, data) => {
+    if (data instanceof FormData) {
+      return api.put(`/admin/categories/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
+    }
+    return api.put(`/admin/categories/${id}`, data)
+  },
   deleteCategory: (id) => api.delete(`/admin/categories/${id}`),
   // Settings
   changePassword: (data) => api.put('/admin/settings/password', data),

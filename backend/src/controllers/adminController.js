@@ -243,13 +243,38 @@ exports.createCategory = async (req, res) => {
 };
 
 exports.updateCategory = async (req, res) => {
-  const category = await Category.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const categoryData = { ...req.body };
+  
+  // Handle uploaded image
+  if (req.file) {
+    // Delete old image if it exists
+    const oldCategory = await Category.findById(req.params.id);
+    if (oldCategory && oldCategory.image && oldCategory.image.startsWith('/uploads/')) {
+      const filePath = path.join(__dirname, '../../', oldCategory.image);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+    categoryData.image = `/uploads/products/${req.file.filename}`;
+  }
+  
+  const category = await Category.findByIdAndUpdate(req.params.id, categoryData, { new: true });
   if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
   res.json({ success: true, category });
 };
 
 exports.deleteCategory = async (req, res) => {
-  await Category.findByIdAndDelete(req.params.id);
+  const category = await Category.findByIdAndDelete(req.params.id);
+  if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+  
+  // Delete associated image
+  if (category.image && category.image.startsWith('/uploads/')) {
+    const filePath = path.join(__dirname, '../../', category.image);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  }
+  
   res.json({ success: true, message: 'Category deleted' });
 };
 
