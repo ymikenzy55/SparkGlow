@@ -37,7 +37,4 @@ exports.adminOnly = (req, res, next) => {
   }
   next();
 };
-    return res.status(403).json({ success: false, message: 'Admin access required' });
-  }
-  next();
-};
+
