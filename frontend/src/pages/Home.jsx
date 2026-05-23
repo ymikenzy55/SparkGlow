@@ -7,6 +7,7 @@ import ProductCard from '../components/product/ProductCard'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import HeroBanner from '../components/common/HeroBanner'
 import { getImageUrl } from '../utils/imageUrl'
+import { useSocket } from '../context/SocketContext'
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }
 
@@ -27,12 +28,39 @@ export default function Home() {
   const [categories, setCategories] = useState([])
   const [featured, setFeatured] = useState([])
   const [loading, setLoading] = useState(true)
+  const { socket } = useSocket()
 
   useEffect(() => {
     Promise.all([categoryAPI.getAll(), productAPI.getFeatured()])
       .then(([c, p]) => { setCategories(c.data.categories); setFeatured(p.data.products) })
       .finally(() => setLoading(false))
   }, [])
+
+  // Listen for real-time product updates
+  useEffect(() => {
+    if (!socket) return
+
+    socket.on('product-created', () => {
+      // Reload featured products
+      productAPI.getFeatured().then(p => setFeatured(p.data.products))
+    })
+
+    socket.on('product-updated', (product) => {
+      // Update the product in featured list if it exists
+      setFeatured(prev => prev.map(p => p._id === product._id ? product : p))
+    })
+
+    socket.on('product-deleted', (productId) => {
+      // Remove from featured list
+      setFeatured(prev => prev.filter(p => p._id !== productId))
+    })
+
+    return () => {
+      socket.off('product-created')
+      socket.off('product-updated')
+      socket.off('product-deleted')
+    }
+  }, [socket])
 
   if (loading) return <LoadingSpinner />
 

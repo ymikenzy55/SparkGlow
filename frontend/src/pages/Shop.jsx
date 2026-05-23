@@ -6,6 +6,8 @@ import { productAPI, categoryAPI } from '../services/api'
 import ProductCard from '../components/product/ProductCard'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import Breadcrumb from '../components/common/Breadcrumb'
+import { useSocket } from '../context/SocketContext'
+import toast from 'react-hot-toast'
 
 export default function Shop() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -16,6 +18,7 @@ export default function Shop() {
   const [pages, setPages] = useState(1)
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [showFilters, setShowFilters] = useState(false)
+  const { socket } = useSocket()
 
   const page = Number(searchParams.get('page')) || 1
   const category = searchParams.get('category') || ''
@@ -38,6 +41,40 @@ export default function Shop() {
       .then(r => { setProducts(r.data.products); setTotal(r.data.total); setPages(r.data.pages) })
       .finally(() => setLoading(false))
   }, [page, category, sort, minPrice, maxPrice, search])
+
+  // Listen for real-time product updates
+  useEffect(() => {
+    if (!socket) return
+
+    socket.on('product-created', (product) => {
+      toast.success('New product added!')
+      // Reload products to show the new one
+      const params = { page, limit: 12, sort }
+      if (category) params.category = category
+      if (search) params.search = search
+      if (minPrice) params.minPrice = minPrice
+      if (maxPrice) params.maxPrice = maxPrice
+      productAPI.getAll(params)
+        .then(r => { setProducts(r.data.products); setTotal(r.data.total); setPages(r.data.pages) })
+    })
+
+    socket.on('product-updated', (product) => {
+      // Update the product in the list
+      setProducts(prev => prev.map(p => p._id === product._id ? product : p))
+    })
+
+    socket.on('product-deleted', (productId) => {
+      // Remove the product from the list
+      setProducts(prev => prev.filter(p => p._id !== productId))
+      setTotal(prev => prev - 1)
+    })
+
+    return () => {
+      socket.off('product-created')
+      socket.off('product-updated')
+      socket.off('product-deleted')
+    }
+  }, [socket, page, category, sort, minPrice, maxPrice, search])
 
   const set = (key, val) => {
     const p = new URLSearchParams(searchParams)

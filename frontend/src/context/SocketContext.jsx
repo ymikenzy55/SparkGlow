@@ -9,8 +9,11 @@ export function SocketProvider({ children }) {
   const { user } = useAuth()
 
   useEffect(() => {
+    // Get backend URL from environment variable
+    const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+    
     // Initialize socket connection
-    const newSocket = io('http://localhost:5000', {
+    const newSocket = io(backendUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,
@@ -18,11 +21,11 @@ export function SocketProvider({ children }) {
     })
 
     newSocket.on('connect', () => {
-      // Socket connected
+      console.log('Socket connected')
       
       // Join appropriate room based on user role
       if (user) {
-        if (user.role === 'admin') {
+        if (user.role === 'admin' || user.role === 'superadmin') {
           newSocket.emit('join-admin')
         } else {
           newSocket.emit('join-user', user._id)
@@ -31,15 +34,15 @@ export function SocketProvider({ children }) {
     })
 
     newSocket.on('connect_error', (error) => {
-      // Socket connection error (will retry automatically)
+      console.error('Socket connection error:', error)
     })
 
     newSocket.on('disconnect', (reason) => {
-      // Socket disconnected
+      console.log('Socket disconnected:', reason)
     })
 
     newSocket.on('reconnect', (attemptNumber) => {
-      // Socket reconnected
+      console.log('Socket reconnected after', attemptNumber, 'attempts')
     })
 
     setSocket(newSocket)
