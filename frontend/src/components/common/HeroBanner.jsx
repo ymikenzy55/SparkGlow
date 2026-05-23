@@ -113,7 +113,7 @@ export default function HeroBanner() {
                   <Link to={banners[currentSlide].link} className="btn btn-primary">
                     {banners[currentSlide].cta} <FiArrowRight />
                   </Link>
-                  <Link to="/shop" className="btn btn-outline">View All Products</Link>
+                  <Link to="/shop" className="btn" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '2px solid rgba(255,255,255,0.3)' }}>View All Products</Link>
                 </div>
               </motion.div>
             </div>

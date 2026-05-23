@@ -9,6 +9,19 @@ import HeroBanner from '../components/common/HeroBanner'
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }
 
+const tickerMessages = [
+  '✦ Premium Handcrafted Soaps',
+  '✦ 100% Natural Ingredients',
+  '✦ Gentle on Sensitive Skin',
+  '✦ Organic Liquid Soaps',
+  '✦ Trusted by 50,000+ Customers',
+  '✦ Free Delivery on Orders Over GH₵ 50',
+  '✦ Luxurious Bath Experience',
+  '✦ Eco-Friendly Packaging',
+  '✦ Nourish & Protect Your Skin',
+  '✦ Made with Love & Care'
+]
+
 export default function Home() {
   const [categories, setCategories] = useState([])
   const [featured, setFeatured] = useState([])
@@ -22,7 +35,8 @@ export default function Home() {
 
   if (loading) return <LoadingSpinner />
 
-  const tickerItems = [...categories, ...categories, ...categories]
+  // Duplicate ticker messages for seamless loop
+  const tickerItems = [...tickerMessages, ...tickerMessages, ...tickerMessages]
 
   return (
     <div>
@@ -32,9 +46,9 @@ export default function Home() {
       {/* Ticker */}
       <div className="ticker-wrap">
         <div className="ticker-track">
-          {tickerItems.map((cat, i) => (
+          {tickerItems.map((message, i) => (
             <div key={i} className="ticker-item">
-              <span className="ticker-dot">✦</span><span>{cat.name}</span>
+              <span>{message}</span>
             </div>
           ))}
         </div>
