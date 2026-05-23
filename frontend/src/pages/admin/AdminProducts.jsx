@@ -6,7 +6,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ConfirmModal from '../../components/common/ConfirmModal'
 import { formatCedi } from '../../utils/currency'
 
-const empty = { name: '', description: '', price: '', oldPrice: '', images: [], category: '', stock: 0, featured: false, tags: '', isActive: true }
+const empty = { name: '', description: '', price: '', oldPrice: '', images: [], category: '', stock: '', featured: false, tags: '', isActive: true }
 
 export default function AdminProducts() {
   const [products, setProducts] = useState([])
@@ -372,18 +372,38 @@ export default function AdminProducts() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Price (GH₵) *</label>
-                    <input required type="number" step="0.01" className="form-input" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
+                    <input 
+                      required 
+                      type="number" 
+                      step="0.01" 
+                      className="form-input" 
+                      value={form.price} 
+                      onChange={e => setForm(f => ({ ...f, price: e.target.value }))} 
+                    />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Old Price (GH₵)</label>
-                    <input type="number" step="0.01" className="form-input" value={form.oldPrice || ''} onChange={e => setForm(f => ({ ...f, oldPrice: e.target.value }))} />
+                    <label className="form-label">Original Price (GH₵)</label>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      className="form-input" 
+                      value={form.oldPrice} 
+                      onChange={e => setForm(f => ({ ...f, oldPrice: e.target.value }))} 
+                      placeholder="Optional"
+                    />
                   </div>
                 </div>
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Category *</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <select required className="form-select" style={{ flex: 1 }} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
+                      <select 
+                        required 
+                        className="form-select" 
+                        style={{ flex: 1 }} 
+                        value={form.category} 
+                        onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                      >
                         <option value="">Select category</option>
                         {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                       </select>
@@ -393,8 +413,16 @@ export default function AdminProducts() {
                     </div>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Stock</label>
-                    <input type="number" className="form-input" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} />
+                    <label className="form-label">Stock Quantity *</label>
+                    <input 
+                      required
+                      type="number" 
+                      min="0"
+                      className="form-input" 
+                      value={form.stock} 
+                      onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} 
+                      placeholder="0"
+                    />
                   </div>
                 </div>
                 
