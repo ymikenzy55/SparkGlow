@@ -6,6 +6,7 @@ import { categoryAPI, productAPI } from '../services/api'
 import ProductCard from '../components/product/ProductCard'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import HeroBanner from '../components/common/HeroBanner'
+import { getImageUrl } from '../utils/imageUrl'
 
 const fadeUp = { hidden: { opacity: 0, y: 40 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }
 
@@ -65,7 +66,7 @@ export default function Home() {
             {categories.map((cat, i) => (
               <motion.div key={cat._id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.4 }}>
                 <Link to={`/category/${cat.slug}`} className="category-card">
-                  <div className="category-card-img"><img src={cat.image} alt={cat.name} loading="lazy" /></div>
+                  <div className="category-card-img"><img src={getImageUrl(cat.image)} alt={cat.name} loading="lazy" /></div>
                   <div className="category-card-name">{cat.name}</div>
                 </Link>
               </motion.div>

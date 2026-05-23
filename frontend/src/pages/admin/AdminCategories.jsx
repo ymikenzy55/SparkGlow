@@ -4,6 +4,7 @@ import { FiPlus, FiEdit2, FiTrash2, FiX } from 'react-icons/fi'
 import { adminAPI } from '../../services/api'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ConfirmModal from '../../components/common/ConfirmModal'
+import { getImageUrl } from '../../utils/imageUrl'
 
 const empty = { name: '', slug: '', description: '', image: '', featured: false }
 
@@ -59,7 +60,7 @@ export default function AdminCategories() {
             <tbody>
               {categories.map(c => (
                 <tr key={c._id}>
-                  <td>{c.image && <img className="img-preview" src={c.image} alt="" />}</td>
+                  <td>{c.image && <img className="img-preview" src={getImageUrl(c.image)} alt="" />}</td>
                   <td style={{ fontWeight: 500 }}>{c.name}</td>
                   <td><span className="badge badge-gray">{c.slug}</span></td>
                   <td>{c.featured ? <span className="badge badge-pink">Yes</span> : <span className="badge badge-gray">No</span>}</td>
