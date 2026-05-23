@@ -1,10 +1,19 @@
 import { Link } from 'react-router-dom'
-import { FiInstagram, FiFacebook, FiYoutube, FiPhone } from 'react-icons/fi'
+import { FiInstagram, FiFacebook, FiPhone } from 'react-icons/fi'
 import { FaWhatsapp, FaTiktok } from 'react-icons/fa'
+import { useState, useEffect } from 'react'
+import { categoryAPI } from '../../services/api'
 
 export default function Footer() {
   const phoneNumber = '0246871565'
   const whatsappNumber = '233246871565' // Ghana country code + number without leading 0
+  const [categories, setCategories] = useState([])
+  
+  useEffect(() => {
+    categoryAPI.getAll()
+      .then(r => setCategories(r.data.categories.slice(0, 4))) // Get first 4 categories
+      .catch(() => {})
+  }, [])
   
   return (
     <footer className="footer">
@@ -16,10 +25,9 @@ export default function Footer() {
             </div>
             <p>Your ultimate bath and body care destination. Premium soaps and natural cleansing products — because you deserve the best care every day.</p>
             <div className="footer-socials">
-              <a href="#" className="footer-social-btn"><FiInstagram /></a>
-              <a href="#" className="footer-social-btn"><FiFacebook /></a>
-              <a href="#" className="footer-social-btn"><FaTiktok /></a>
-              <a href="#" className="footer-social-btn"><FiYoutube /></a>
+              <a href="https://www.instagram.com/queenamoabengboadu" target="_blank" rel="noopener noreferrer" className="footer-social-btn"><FiInstagram /></a>
+              <a href="https://www.facebook.com/queenamoabengboadu" target="_blank" rel="noopener noreferrer" className="footer-social-btn"><FiFacebook /></a>
+              <a href="https://www.tiktok.com/@queemj034" target="_blank" rel="noopener noreferrer" className="footer-social-btn"><FaTiktok /></a>
             </div>
           </div>
           <div className="footer-col">
@@ -31,15 +39,16 @@ export default function Footer() {
               <Link to="/cart">Cart</Link>
             </div>
           </div>
-          <div className="footer-col">
-            <h4>Categories</h4>
-            <div className="footer-links">
-              <Link to="/category/hair-care">Hair Care</Link>
-              <Link to="/category/fragrances">Fragrances</Link>
-              <Link to="/category/nail-care">Nail Care</Link>
-              <Link to="/category/body-care">Body Care</Link>
+          {categories.length > 0 && (
+            <div className="footer-col">
+              <h4>Categories</h4>
+              <div className="footer-links">
+                {categories.map(cat => (
+                  <Link key={cat._id} to={`/category/${cat.slug}`}>{cat.name}</Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
           <div className="footer-col">
             <h4>Contact Us</h4>
             <div className="footer-links">
