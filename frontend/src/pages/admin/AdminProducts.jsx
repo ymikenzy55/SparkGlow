@@ -369,7 +369,7 @@ export default function AdminProducts() {
               <div className="modal-body">
                 <div className="form-group">
                   <label className="form-label">Product Name *</label>
-                  <input required className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                  <input required className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoComplete="off" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Description *</label>
@@ -385,6 +385,7 @@ export default function AdminProducts() {
                       className="form-input" 
                       value={form.price} 
                       onChange={e => setForm(f => ({ ...f, price: e.target.value }))} 
+                      autoComplete="off"
                     />
                   </div>
                   <div className="form-group">
@@ -396,6 +397,7 @@ export default function AdminProducts() {
                       value={form.oldPrice} 
                       onChange={e => setForm(f => ({ ...f, oldPrice: e.target.value }))} 
                       placeholder="Optional"
+                      autoComplete="off"
                     />
                   </div>
                 </div>
@@ -428,6 +430,7 @@ export default function AdminProducts() {
                       value={form.stock} 
                       onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} 
                       placeholder="0"
+                      autoComplete="off"
                     />
                   </div>
                 </div>
