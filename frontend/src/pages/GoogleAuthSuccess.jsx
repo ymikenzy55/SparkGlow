@@ -44,9 +44,13 @@ export default function GoogleAuthSuccess() {
         // Show success message
         toast.success(`Welcome back, ${data.user.name}!`)
         
-        // Redirect based on role
-        const redirectPath = data.user.role === 'admin' ? '/admin/dashboard' : '/'
-        navigate(redirectPath, { replace: true })
+        // Redirect based on role. For admins, use hard reload to ensure all
+        // contexts are fully synchronized before the dashboard mounts.
+        if (data.user.role === 'admin' || data.user.role === 'superadmin') {
+          window.location.href = '/admin/dashboard'
+          return
+        }
+        navigate('/', { replace: true })
         
       } catch (err) {
         localStorage.removeItem('sg_token')

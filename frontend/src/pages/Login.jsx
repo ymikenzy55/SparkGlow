@@ -28,7 +28,14 @@ export default function Login() {
         user = await register(form.name, form.email, form.password)
       }
       toast.success(tab === 'login' ? 'Welcome back!' : 'Account created!')
-      navigate(user.role === 'admin' ? '/admin' : '/')
+      // For admins, use a hard reload to ensure all contexts (auth, socket, cart)
+      // are fully synchronized before the admin dashboard mounts. Soft navigation
+      // can cause the dashboard to render with stale auth state.
+      if (user.role === 'admin' || user.role === 'superadmin') {
+        window.location.href = '/admin/dashboard'
+        return
+      }
+      navigate('/')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Something went wrong')
     }
