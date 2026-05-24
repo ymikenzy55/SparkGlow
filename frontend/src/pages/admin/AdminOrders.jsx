@@ -123,22 +123,34 @@ export default function AdminOrders() {
         </div>
 
         {/* Always visible search bar */}
-        <div style={{ padding: '0 24px 16px', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div className="admin-search" style={{ flex: '1 1 200px', minWidth: '0' }}>
-            <input 
-              placeholder="Search by order ID, customer..." 
-              value={search} 
-              onChange={e => setSearch(e.target.value)} 
-              style={{ width: '100%' }}
+        <div className="orders-search-row">
+          <div className="orders-search-wrapper">
+            <FiSearch className="orders-search-icon" size={18} />
+            <input
+              type="text"
+              className="orders-search-input"
+              placeholder="Search orders..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
             />
+            {search && (
+              <button
+                type="button"
+                className="orders-search-clear"
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+              >
+                <FiX size={16} />
+              </button>
+            )}
           </div>
-          <button 
-            className="btn btn-sm" 
-            style={{ background: showFilters ? 'var(--primary)' : 'var(--bg-light)', color: showFilters ? '#fff' : 'inherit', display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}
+          <button
+            type="button"
+            className={`orders-filter-btn ${showFilters ? 'active' : ''}`}
             onClick={() => setShowFilters(!showFilters)}
           >
-            <FiFilter size={14} />
-            Filters
+            <FiFilter size={16} />
+            <span>Filters</span>
           </button>
         </div>
 
