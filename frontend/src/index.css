@@ -1896,3 +1896,33 @@ ul{list-style:none}
     font-size: 0.875rem;
   }
 }
+
+/* Admin Orders Mobile/Desktop Toggle */
+.orders-mobile-view {
+  display: none;
+}
+
+.orders-desktop-view {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .orders-mobile-view {
+    display: block;
+  }
+  
+  .orders-desktop-view {
+    display: none;
+  }
+  
+  /* Fix search bar in admin orders on mobile */
+  .admin-section .admin-search {
+    width: 100%;
+    min-width: 0;
+  }
+  
+  .admin-section .admin-search input {
+    width: 100%;
+    min-width: 0;
+  }
+}
