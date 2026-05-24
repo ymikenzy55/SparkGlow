@@ -12,8 +12,17 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('sg_token')
     if (token) {
       authAPI.getMe()
-        .then(res => setUser(res.data.user))
-        .catch(() => localStorage.removeItem('sg_token'))
+        .then(res => {
+          if (res.data.success) {
+            setUser(res.data.user)
+          } else {
+            localStorage.removeItem('sg_token')
+          }
+        })
+        .catch(err => {
+          console.error('Failed to fetch user:', err)
+          localStorage.removeItem('sg_token')
+        })
         .finally(() => setLoading(false))
     } else {
       setLoading(false)
