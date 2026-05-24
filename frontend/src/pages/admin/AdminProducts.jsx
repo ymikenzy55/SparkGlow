@@ -422,24 +422,38 @@ export default function AdminProducts() {
                     <label className="form-label">Price (GH₵) *</label>
                     <input 
                       required 
-                      type="number" 
-                      step="0.01" 
+                      type="text"
+                      inputMode="decimal"
                       className="form-input" 
                       value={form.price} 
-                      onChange={e => setForm(f => ({ ...f, price: e.target.value }))} 
+                      onChange={e => {
+                        const v = e.target.value
+                        if (v === '' || /^\d*\.?\d*$/.test(v)) {
+                          setForm(f => ({ ...f, price: v }))
+                        }
+                      }} 
+                      onWheel={e => e.target.blur()}
                       autoComplete="off"
+                      name="product-price-input"
                     />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Original Price (GH₵)</label>
                     <input 
-                      type="number" 
-                      step="0.01" 
+                      type="text"
+                      inputMode="decimal"
                       className="form-input" 
                       value={form.oldPrice} 
-                      onChange={e => setForm(f => ({ ...f, oldPrice: e.target.value }))} 
+                      onChange={e => {
+                        const v = e.target.value
+                        if (v === '' || /^\d*\.?\d*$/.test(v)) {
+                          setForm(f => ({ ...f, oldPrice: v }))
+                        }
+                      }} 
+                      onWheel={e => e.target.blur()}
                       placeholder="Optional"
                       autoComplete="off"
+                      name="product-old-price-input"
                     />
                   </div>
                 </div>
@@ -469,6 +483,7 @@ export default function AdminProducts() {
                       type="number" 
                       min="0"
                       className="form-input" 
+                      onWheel={e => e.target.blur()}
                       value={form.stock} 
                       onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} 
                       placeholder="0"
