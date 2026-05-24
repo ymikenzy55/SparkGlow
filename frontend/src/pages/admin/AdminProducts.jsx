@@ -296,7 +296,10 @@ export default function AdminProducts() {
                       <td style={{ fontWeight: 500 }}>{p.name}</td>
                       <td>{p.category?.name || '—'}</td>
                       <td><strong style={{ color: 'var(--primary)' }}>{formatCedi(p.price)}</strong></td>
-                      <td><span className={p.stock === 0 ? 'badge badge-red' : p.stock <= 5 ? 'low-stock' : ''}>{p.stock}</span></td>
+                      <td style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {p.stock <= 5 && p.stock > 0 && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#e53935' }}></span>}
+                        <span className={p.stock === 0 ? 'badge badge-red' : p.stock <= 5 ? 'low-stock' : ''}>{p.stock}</span>
+                      </td>
                       <td>{p.featured ? <span className="badge badge-pink">Yes</span> : <span className="badge badge-gray">No</span>}</td>
                       <td>
                         <div className="action-btns">
@@ -336,7 +339,11 @@ export default function AdminProducts() {
                       <p style={{ margin: '0 0 4px 0', fontSize: '0.875rem', color: 'var(--text-light)' }}>{p.category?.name || '—'}</p>
                       <p style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 'bold', color: 'var(--primary)' }}>{formatCedi(p.price)}</p>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.875rem' }}>Stock: <span className={p.stock === 0 ? 'badge badge-red' : p.stock <= 5 ? 'low-stock' : ''}>{p.stock}</span></span>
+                        <span style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          Stock: 
+                          {p.stock <= 5 && p.stock > 0 && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#e53935' }}></span>}
+                          <span className={p.stock === 0 ? 'badge badge-red' : p.stock <= 5 ? 'low-stock' : ''}>{p.stock}</span>
+                        </span>
                         {p.featured && <span className="badge badge-pink">Featured</span>}
                       </div>
                     </div>

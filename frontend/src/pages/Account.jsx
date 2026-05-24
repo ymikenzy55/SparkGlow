@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { FiUser, FiShoppingBag, FiLock, FiLogOut, FiMessageSquare, FiDownload, FiPackage } from 'react-icons/fi'
+import { FiUser, FiShoppingBag, FiLock, FiLogOut, FiMessageSquare, FiDownload, FiPackage, FiX, FiMail, FiCheck } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { authAPI, orderAPI, messageAPI } from '../services/api'
 import { formatCedi } from '../utils/currency'
+import { getImageUrl } from '../utils/imageUrl'
 import Breadcrumb from '../components/common/Breadcrumb'
 
 export default function Account() {
@@ -20,6 +21,10 @@ export default function Account() {
   const [messageForm, setMessageForm] = useState({ subject: '', body: '' })
   const [saving, setSaving] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [showReceiptModal, setShowReceiptModal] = useState(null)
+  const [followUpOrder, setFollowUpOrder] = useState(null)
+  const [followUpForm, setFollowUpForm] = useState({ subject: '', body: '' })
+  const [sendingFollowUp, setSendingFollowUp] = useState(false)
 
   // Update tab when URL changes
   useEffect(() => {
@@ -72,6 +77,24 @@ export default function Account() {
       setMessageForm({ subject: '', body: '' })
     } catch (err) { toast.error(err.response?.data?.message || 'Failed to send message') }
     setSaving(false)
+  }
+
+  const sendFollowUpMessage = async (e) => {
+    e.preventDefault()
+    setSendingFollowUp(true)
+    try {
+      const subject = `Follow-up on Order #${followUpOrder._id.slice(-8).toUpperCase()}`
+      await messageAPI.send({ 
+        name: user.name, 
+        email: user.email, 
+        subject, 
+        body: followUpForm.body 
+      })
+      toast.success('Follow-up message sent!')
+      setFollowUpOrder(null)
+      setFollowUpForm({ subject: '', body: '' })
+    } catch (err) { toast.error(err.response?.data?.message || 'Failed to send message') }
+    setSendingFollowUp(false)
   }
 
   const downloadReceipt = (order) => {
@@ -154,7 +177,7 @@ Thank you for shopping with SparkGlow!
                         <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Order #{order._id.slice(-8).toUpperCase()}</div>
                         <div className="order-id">{new Date(order.createdAt).toLocaleDateString()}</div>
                       </div>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <span className={`order-status ${statusClass(order.status)}`}>{order.status}</span>
                         <button 
                           className="btn btn-sm" 
@@ -162,6 +185,13 @@ Thank you for shopping with SparkGlow!
                           onClick={() => setSelectedOrder(selectedOrder?._id === order._id ? null : order)}
                         >
                           <FiPackage size={14} /> {selectedOrder?._id === order._id ? 'Hide' : 'Track'}
+                        </button>
+                        <button 
+                          className="btn btn-sm" 
+                          style={{ background: 'var(--bg-light)', padding: '6px 12px' }}
+                          onClick={() => setShowReceiptModal(order)}
+                        >
+                          <FiMail size={14} /> View Receipt
                         </button>
                         <button 
                           className="btn btn-sm" 
@@ -198,6 +228,13 @@ Thank you for shopping with SparkGlow!
                             <strong>Tracking #:</strong> {order.trackingNumber}
                           </div>
                         )}
+                        <button 
+                          className="btn btn-primary btn-sm" 
+                          style={{ marginTop: '12px' }} 
+                          onClick={() => { setFollowUpOrder(order); setFollowUpForm({ subject: '', body: '' }) }}
+                        >
+                          <FiMessageSquare size={14} /> Send Follow-up Message
+                        </button>
                       </div>
                     )}
                     
@@ -266,6 +303,120 @@ Thank you for shopping with SparkGlow!
           )}
         </motion.div>
       </div>
+
+      {/* Receipt Modal */}
+      {showReceiptModal && (
+        <div className="modal-overlay" onClick={() => setShowReceiptModal(null)}>
+          <div className="modal" style={{ maxWidth: '650px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Order Receipt</h3>
+              <button onClick={() => setShowReceiptModal(null)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}><FiX /></button>
+            </div>
+            <div className="modal-body" style={{ padding: '20px' }}>
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <img src="/logo.png" alt="SparkGlow" style={{ height: '50px', marginBottom: '8px' }} />
+                <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--primary)' }}>SparkGlow</h3>
+                <p style={{ margin: '4px 0 0', fontSize: '0.875rem', color: 'var(--text-light)' }}>Your Receipt</p>
+              </div>
+
+              <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem' }}>
+                  <strong>Order ID:</strong>
+                  <span>#{showReceiptModal._id.slice(-8).toUpperCase()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem' }}>
+                  <strong>Date:</strong>
+                  <span>{new Date(showReceiptModal.createdAt).toLocaleString()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                  <strong>Status:</strong>
+                  <span className={`order-status ${statusClass(showReceiptModal.status)}`}>{showReceiptModal.status}</span>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', fontWeight: 600 }}>Customer Information</h4>
+                <div style={{ background: 'var(--bg-light)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }}>
+                  <div style={{ marginBottom: '6px' }}><strong>Name:</strong> {showReceiptModal.customerInfo?.name || user?.name || 'N/A'}</div>
+                  <div style={{ marginBottom: '6px' }}><strong>Email:</strong> {showReceiptModal.customerInfo?.email || user?.email || 'N/A'}</div>
+                  {showReceiptModal.customerInfo?.phone && <div><strong>Phone:</strong> {showReceiptModal.customerInfo.phone}</div>}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', fontWeight: 600 }}>Items</h4>
+                {showReceiptModal.items.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '12px', padding: '12px', borderBottom: i < showReceiptModal.items.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                    <img src={getImageUrl(item.image)} alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>{item.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Qty: {item.quantity}</div>
+                    </div>
+                    <div style={{ fontWeight: 600, color: 'var(--primary)' }}>{formatCedi(item.price * item.quantity)}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ background: 'var(--bg-light)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem' }}>
+                  <span>Subtotal:</span>
+                  <span>{formatCedi(showReceiptModal.subtotal)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem' }}>
+                  <span>Shipping:</span>
+                  <span>{showReceiptModal.shipping === 0 ? 'FREE' : formatCedi(showReceiptModal.shipping)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid var(--border)', fontWeight: 700, fontSize: '1rem' }}>
+                  <span>Total:</span>
+                  <span style={{ color: 'var(--primary)' }}>{formatCedi(showReceiptModal.total)}</span>
+                </div>
+              </div>
+
+              <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                <button className="btn btn-primary" onClick={() => downloadReceipt(showReceiptModal)}>
+                  <FiDownload size={14} /> Download Receipt
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Follow-up Message Modal */}
+      {followUpOrder && (
+        <div className="modal-overlay" onClick={() => setFollowUpOrder(null)}>
+          <div className="modal" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Send Follow-up Message</h3>
+              <button onClick={() => setFollowUpOrder(null)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}><FiX /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: '16px', fontSize: '0.875rem', color: 'var(--text-light)' }}>
+                Sending message for Order #<strong>{followUpOrder._id.slice(-8).toUpperCase()}</strong>
+              </p>
+              <form onSubmit={sendFollowUpMessage}>
+                <div className="form-group">
+                  <label className="form-label">Message *</label>
+                  <textarea 
+                    required 
+                    className="form-input" 
+                    rows={5} 
+                    placeholder="Write your message here..." 
+                    value={followUpForm.body} 
+                    onChange={e => setFollowUpForm(f => ({ ...f, body: e.target.value }))} 
+                  />
+                </div>
+                <div className="modal-footer" style={{ padding: '0', marginTop: '20px' }}>
+                  <button type="button" className="btn btn-sm" style={{ background: 'var(--bg-light)' }} onClick={() => setFollowUpOrder(null)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary btn-sm" disabled={sendingFollowUp}>
+                    {sendingFollowUp ? 'Sending…' : 'Send Message'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
