@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiUpload, FiCamera, FiCheck } from 'react-icons/fi'
+import { useSocket } from '../../context/SocketContext'
 import { adminAPI } from '../../services/api'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -30,6 +31,7 @@ export default function AdminProducts() {
   const [creatingCategory, setCreatingCategory] = useState(false)
   const [selectedProducts, setSelectedProducts] = useState([])
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false)
+  const { socket } = useSocket()
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
   const categoryImageInputRef = useRef(null)
@@ -51,6 +53,39 @@ export default function AdminProducts() {
   }
 
   useEffect(() => { load() }, [page, search])
+
+  // Real-time updates for products
+  useEffect(() => {
+    if (!socket) return
+
+    const handleProductCreated = (newProduct) => {
+      setProducts(prev => [newProduct, ...prev])
+      setTotal(prev => prev + 1)
+    }
+
+    const handleProductUpdated = (updatedProduct) => {
+      setProducts(prev => 
+        prev.map(product => 
+          product._id === updatedProduct._id ? { ...product, ...updatedProduct } : product
+        )
+      )
+    }
+
+    const handleProductDeleted = (productId) => {
+      setProducts(prev => prev.filter(product => product._id !== productId))
+      setTotal(prev => prev - 1)
+    }
+
+    socket.on('product-created', handleProductCreated)
+    socket.on('product-updated', handleProductUpdated)
+    socket.on('product-deleted', handleProductDeleted)
+
+    return () => {
+      socket.off('product-created', handleProductCreated)
+      socket.off('product-updated', handleProductUpdated)
+      socket.off('product-deleted', handleProductDeleted)
+    }
+  }, [socket])
 
   const handleSearchChange = (e) => {
     const value = e.target.value

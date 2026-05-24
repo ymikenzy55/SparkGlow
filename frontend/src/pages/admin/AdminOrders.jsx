@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { FiEye, FiX } from 'react-icons/fi'
+import { FiEye, FiX, FiTrash2, FiCalendar } from 'react-icons/fi'
+import { useSocket } from '../../context/SocketContext'
 import { adminAPI } from '../../services/api'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { formatCedi } from '../../utils/currency'
@@ -15,20 +16,58 @@ export default function AdminOrders() {
   const [total, setTotal] = useState(0)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(1)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [orderDetail, setOrderDetail] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+  const { socket } = useSocket()
   const pages = Math.ceil(total / 20)
 
   const load = () => {
     setLoading(true)
-    adminAPI.getOrders({ page, limit: 20, search, status: filterStatus })
+    adminAPI.getOrders({ page, limit: 20, search, status: filterStatus, startDate, endDate })
       .then(r => { setOrders(r.data.orders); setTotal(r.data.total) })
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [page, search, filterStatus])
+  useEffect(() => { load() }, [page, search, filterStatus, startDate, endDate])
+
+  // Real-time updates for admin
+  useEffect(() => {
+    if (!socket) return
+
+    const handleOrderUpdated = (updatedOrder) => {
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order._id === updatedOrder._id ? { ...order, ...updatedOrder } : order
+        )
+      )
+    }
+
+    const handleOrderDeleted = (orderId) => {
+      setOrders(prevOrders => prevOrders.filter(order => order._id !== orderId))
+      setTotal(prev => prev - 1)
+    }
+
+    const handleNewOrder = (newOrder) => {
+      setOrders(prevOrders => [newOrder, ...prevOrders])
+      setTotal(prev => prev + 1)
+    }
+
+    socket.on('order-updated', handleOrderUpdated)
+    socket.on('order-deleted', handleOrderDeleted)
+    socket.on('new-order', handleNewOrder)
+
+    return () => {
+      socket.off('order-updated', handleOrderUpdated)
+      socket.off('order-deleted', handleOrderDeleted)
+      socket.off('new-order', handleNewOrder)
+    }
+  }, [socket])
 
   const updateStatus = async (id, status) => {
     try {
@@ -51,17 +90,54 @@ export default function AdminOrders() {
     setDetailLoading(false)
   }
 
+  const deleteOrder = async (orderId) => {
+    setDeleting(true)
+    try {
+      await adminAPI.deleteOrder(orderId)
+      toast.success('Order deleted!')
+      setShowDeleteConfirm(null)
+      load()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete order')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <div>
       <div className="admin-section">
         <div className="admin-section-header">
           <h3>Orders ({total})</h3>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
             <div className="admin-search"><input placeholder="Search orders…" value={search} onChange={e => setSearch(e.target.value)} /></div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <FiCalendar size={16} />
+              <input 
+                type="date" 
+                className="form-input" 
+                style={{ padding: '6px 10px', width: 'auto' }}
+                value={startDate} 
+                onChange={e => setStartDate(e.target.value)} 
+              />
+              <span>to</span>
+              <input 
+                type="date" 
+                className="form-input" 
+                style={{ padding: '6px 10px', width: 'auto' }}
+                value={endDate} 
+                onChange={e => setEndDate(e.target.value)} 
+              />
+            </div>
             <select className="form-select" style={{ width: 'auto', padding: '8px 12px' }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
               <option value="">All Statuses</option>
               {statuses.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+            {(startDate || endDate) && (
+              <button className="btn btn-sm" style={{ background: 'var(--bg-light)' }} onClick={() => { setStartDate(''); setEndDate('') }}>
+                Clear Dates
+              </button>
+            )}
           </div>
         </div>
         {loading ? <LoadingSpinner /> : (
@@ -92,9 +168,18 @@ export default function AdminOrders() {
                         </td>
                         <td style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{new Date(o.createdAt).toLocaleDateString()}</td>
                         <td onClick={(e) => e.stopPropagation()}>
-                          <button className="btn btn-sm" style={{ background: 'var(--bg-light)' }} onClick={() => loadOrderDetail(o._id)}>
-                            <FiEye size={13} />
-                          </button>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button className="btn btn-sm" style={{ background: 'var(--bg-light)' }} onClick={() => loadOrderDetail(o._id)}>
+                              <FiEye size={13} />
+                            </button>
+                            <button 
+                              className="btn btn-sm" 
+                              style={{ background: '#ffebee', color: '#c62828' }} 
+                              onClick={() => setShowDeleteConfirm(o._id)}
+                            >
+                              <FiTrash2 size={13} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )
@@ -191,6 +276,29 @@ export default function AdminOrders() {
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(null)}>
+          <div className="modal" style={{ maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Delete Order</h3>
+              <button onClick={() => setShowDeleteConfirm(null)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}><FiX /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-light)', marginBottom: '20px' }}>
+                Are you sure you want to delete this order? This action cannot be undone.
+              </p>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-sm" style={{ background: 'var(--bg-light)' }} onClick={() => setShowDeleteConfirm(null)}>Cancel</button>
+                <button type="button" className="btn btn-sm" style={{ background: '#c62828', color: '#fff' }} onClick={() => deleteOrder(showDeleteConfirm)} disabled={deleting}>
+                  {deleting ? 'Deleting…' : 'Delete'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

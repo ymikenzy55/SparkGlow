@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { FiUser, FiShoppingBag, FiLock, FiLogOut, FiMessageSquare, FiDownload, FiPackage, FiX, FiMail, FiCheck } from 'react-icons/fi'
+import { FiUser, FiShoppingBag, FiLock, FiLogOut, FiMessageSquare, FiDownload, FiPackage, FiX, FiMail, FiEye } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
+import { useSocket } from '../context/SocketContext'
 import { authAPI, orderAPI, messageAPI } from '../services/api'
 import { formatCedi } from '../utils/currency'
 import { getImageUrl } from '../utils/imageUrl'
@@ -11,6 +12,7 @@ import Breadcrumb from '../components/common/Breadcrumb'
 
 export default function Account() {
   const { user, logout, updateUser } = useAuth()
+  const { socket } = useSocket()
   const { tab: urlTab } = useParams()
   const navigate = useNavigate()
   const [tab, setTab] = useState(urlTab || 'orders')
@@ -25,6 +27,7 @@ export default function Account() {
   const [followUpOrder, setFollowUpOrder] = useState(null)
   const [followUpForm, setFollowUpForm] = useState({ subject: '', body: '' })
   const [sendingFollowUp, setSendingFollowUp] = useState(false)
+  const [showOrderDetail, setShowOrderDetail] = useState(null)
 
   // Update tab when URL changes
   useEffect(() => {
@@ -45,6 +48,26 @@ export default function Account() {
       orderAPI.getMyOrders().then(r => setOrders(r.data.orders)).catch(() => {}).finally(() => setOrdersLoading(false))
     }
   }, [tab])
+
+  // Real-time order status updates
+  useEffect(() => {
+    if (!socket) return
+
+    const handleOrderStatusChanged = (updatedOrder) => {
+      setOrders(prevOrders => 
+        prevOrders.map(order => 
+          order._id === updatedOrder._id ? { ...order, ...updatedOrder } : order
+        )
+      )
+      toast.success('Order status updated!')
+    }
+
+    socket.on('order-status-changed', handleOrderStatusChanged)
+
+    return () => {
+      socket.off('order-status-changed', handleOrderStatusChanged)
+    }
+  }, [socket])
 
   const saveProfile = async (e) => {
     e.preventDefault()
@@ -171,7 +194,12 @@ Thank you for shopping with SparkGlow!
                 <p style={{ color: 'var(--text-light)' }}>No orders yet. <a href="/shop" style={{ color: 'var(--primary)' }}>Start shopping!</a></p>
               ) : (
                 orders.map(order => (
-                  <div key={order._id} className="order-card">
+                  <div 
+                    key={order._id} 
+                    className="order-card"
+                    onClick={() => setShowOrderDetail(order)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="order-card-header">
                       <div>
                         <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>Order #{order._id.slice(-8).toUpperCase()}</div>
@@ -182,21 +210,21 @@ Thank you for shopping with SparkGlow!
                         <button 
                           className="btn btn-sm" 
                           style={{ background: 'var(--bg-light)', padding: '6px 12px' }}
-                          onClick={() => setSelectedOrder(selectedOrder?._id === order._id ? null : order)}
+                          onClick={(e) => { e.stopPropagation(); setSelectedOrder(selectedOrder?._id === order._id ? null : order) }}
                         >
                           <FiPackage size={14} /> {selectedOrder?._id === order._id ? 'Hide' : 'Track'}
                         </button>
                         <button 
                           className="btn btn-sm" 
                           style={{ background: 'var(--bg-light)', padding: '6px 12px' }}
-                          onClick={() => setShowReceiptModal(order)}
+                          onClick={(e) => { e.stopPropagation(); setShowReceiptModal(order) }}
                         >
                           <FiMail size={14} /> View Receipt
                         </button>
                         <button 
                           className="btn btn-sm" 
                           style={{ background: 'var(--primary)', color: '#fff', padding: '6px 12px' }}
-                          onClick={() => downloadReceipt(order)}
+                          onClick={(e) => { e.stopPropagation(); downloadReceipt(order) }}
                         >
                           <FiDownload size={14} />
                         </button>
@@ -231,7 +259,7 @@ Thank you for shopping with SparkGlow!
                         <button 
                           className="btn btn-primary btn-sm" 
                           style={{ marginTop: '12px' }} 
-                          onClick={() => { setFollowUpOrder(order); setFollowUpForm({ subject: '', body: '' }) }}
+                          onClick={(e) => { e.stopPropagation(); setFollowUpOrder(order); setFollowUpForm({ subject: '', body: '' }) }}
                         >
                           <FiMessageSquare size={14} /> Send Follow-up Message
                         </button>
@@ -303,6 +331,84 @@ Thank you for shopping with SparkGlow!
           )}
         </motion.div>
       </div>
+
+      {/* Order Detail Modal */}
+      {showOrderDetail && (
+        <div className="modal-overlay" onClick={() => setShowOrderDetail(null)}>
+          <div className="modal" style={{ maxWidth: '700px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Order Details</h3>
+              <button onClick={() => setShowOrderDetail(null)} style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}><FiX /></button>
+            </div>
+            <div className="modal-body">
+              <div style={{ marginBottom: '20px' }}>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', fontWeight: 600 }}>Order Information</h4>
+                <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem' }}>
+                    <strong>Order ID:</strong>
+                    <span>#{showOrderDetail._id.slice(-8).toUpperCase()}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem' }}>
+                    <strong>Date:</strong>
+                    <span>{new Date(showOrderDetail.createdAt).toLocaleString()}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                    <strong>Status:</strong>
+                    <span className={`order-status ${statusClass(showOrderDetail.status)}`}>{showOrderDetail.status}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', fontWeight: 600 }}>Customer Information</h4>
+                <div style={{ background: 'var(--bg-light)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem' }}>
+                  <div style={{ marginBottom: '6px' }}><strong>Name:</strong> {showOrderDetail.customerInfo?.name || user?.name || 'N/A'}</div>
+                  <div style={{ marginBottom: '6px' }}><strong>Email:</strong> {showOrderDetail.customerInfo?.email || user?.email || 'N/A'}</div>
+                  {showOrderDetail.customerInfo?.phone && <div><strong>Phone:</strong> {showOrderDetail.customerInfo.phone}</div>}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', fontWeight: 600 }}>Items</h4>
+                {showOrderDetail.items.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '12px', padding: '12px', borderBottom: i < showOrderDetail.items.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                    <img src={getImageUrl(item.image)} alt="" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>{item.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>Qty: {item.quantity}</div>
+                    </div>
+                    <div style={{ fontWeight: 600, color: 'var(--primary)' }}>{formatCedi(item.price * item.quantity)}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ background: 'var(--bg-light)', padding: '16px', borderRadius: 'var(--radius-sm)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem' }}>
+                  <span>Subtotal:</span>
+                  <span>{formatCedi(showOrderDetail.subtotal)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.875rem' }}>
+                  <span>Shipping:</span>
+                  <span>{showOrderDetail.shipping === 0 ? 'FREE' : formatCedi(showOrderDetail.shipping)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '8px', borderTop: '1px solid var(--border)', fontWeight: 700, fontSize: '1rem' }}>
+                  <span>Total:</span>
+                  <span style={{ color: 'var(--primary)' }}>{formatCedi(showOrderDetail.total)}</span>
+                </div>
+              </div>
+
+              {showOrderDetail.notes && (
+                <div style={{ marginTop: '16px' }}>
+                  <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', fontWeight: 600 }}>Order Notes</h4>
+                  <div style={{ background: 'var(--bg-light)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem', whiteSpace: 'pre-wrap' }}>
+                    {showOrderDetail.notes}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Receipt Modal */}
       {showReceiptModal && (

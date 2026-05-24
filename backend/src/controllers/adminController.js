@@ -145,7 +145,7 @@ exports.deleteProduct = async (req, res) => {
 };
 
 exports.getOrders = async (req, res) => {
-  const { page = 1, limit = 20, status, search } = req.query;
+  const { page = 1, limit = 20, status, search, startDate, endDate } = req.query;
   const query = {};
   if (status) query.status = status;
   if (search) query.$or = [
@@ -155,6 +155,15 @@ exports.getOrders = async (req, res) => {
     { 'customerInfo.email': { $regex: search, $options: 'i' } },
     { trackingNumber: { $regex: search, $options: 'i' } },
   ];
+  if (startDate || endDate) {
+    query.createdAt = {};
+    if (startDate) query.createdAt.$gte = new Date(startDate);
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      query.createdAt.$lte = end;
+    }
+  }
   const skip = (Number(page) - 1) * Number(limit);
   const [orders, total] = await Promise.all([
     Order.find(query).populate('user', 'name email phone').sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(),
@@ -184,6 +193,17 @@ exports.updateOrder = async (req, res) => {
   }
   
   res.json({ success: true, order });
+};
+
+exports.deleteOrder = async (req, res) => {
+  const order = await Order.findByIdAndDelete(req.params.id);
+  if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+  
+  // Emit socket event
+  const io = req.app.get('io');
+  io.emit('order-deleted', req.params.id);
+  
+  res.json({ success: true, message: 'Order deleted' });
 };
 
 exports.getUsers = async (req, res) => {

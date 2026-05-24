@@ -15,6 +15,7 @@ router.post('/upload-images', upload.array('images', 5), ctrl.uploadImages);
 router.get('/orders', ctrl.getOrders);
 router.get('/orders/:id', ctrl.getOrderDetail);
 router.put('/orders/:id', ctrl.updateOrder);
+router.delete('/orders/:id', ctrl.deleteOrder);
 router.get('/users', ctrl.getUsers);
 router.get('/users/:id', ctrl.getUserDetail);
 router.put('/users/:id', ctrl.updateUser);
