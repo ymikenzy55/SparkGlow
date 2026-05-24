@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { FiEye, FiX, FiTrash2, FiCalendar } from 'react-icons/fi'
+import { FiEye, FiX, FiTrash2, FiCalendar, FiSearch, FiFilter, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import { useSocket } from '../../context/SocketContext'
 import { adminAPI } from '../../services/api'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
@@ -24,6 +24,7 @@ export default function AdminOrders() {
   const [detailLoading, setDetailLoading] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
   const { socket } = useSocket()
   const pages = Math.ceil(total / 20)
 
@@ -104,47 +105,111 @@ export default function AdminOrders() {
     }
   }
 
+  const clearFilters = () => {
+    setSearch('')
+    setFilterStatus('')
+    setStartDate('')
+    setEndDate('')
+    setPage(1)
+  }
+
   return (
     <div>
       <div className="admin-section">
-        <div className="admin-section-header">
+        <div className="admin-section-header" style={{ flexWrap: 'wrap', gap: '16px' }}>
           <h3>Orders ({total})</h3>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <div className="admin-search"><input placeholder="Search orders…" value={search} onChange={e => setSearch(e.target.value)} /></div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <FiCalendar size={16} />
-              <input 
-                type="date" 
-                className="form-input" 
-                style={{ padding: '6px 10px', width: 'auto' }}
-                value={startDate} 
-                onChange={e => setStartDate(e.target.value)} 
-              />
-              <span>to</span>
-              <input 
-                type="date" 
-                className="form-input" 
-                style={{ padding: '6px 10px', width: 'auto' }}
-                value={endDate} 
-                onChange={e => setEndDate(e.target.value)} 
-              />
-            </div>
-            <select className="form-select" style={{ width: 'auto', padding: '8px 12px' }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-              <option value="">All Statuses</option>
-              {statuses.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            {(startDate || endDate) && (
-              <button className="btn btn-sm" style={{ background: 'var(--bg-light)' }} onClick={() => { setStartDate(''); setEndDate('') }}>
-                Clear Dates
-              </button>
-            )}
-          </div>
+          
+          {/* Mobile Filter Toggle */}
+          <button 
+            className="btn btn-sm" 
+            style={{ background: 'var(--bg-light)', display: 'flex', alignItems: 'center', gap: '6px' }}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <FiFilter size={14} />
+            Filters
+          </button>
         </div>
+
+        {/* Filters Section */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '12px', 
+          flexWrap: 'wrap', 
+          marginBottom: '20px',
+          background: 'var(--bg-light)',
+          padding: showFilters ? '16px' : '0 16px 16px 16px',
+          borderRadius: 'var(--radius-md)',
+          border: showFilters ? '1px solid var(--border)' : 'none',
+          overflow: showFilters ? 'visible' : 'hidden',
+          maxHeight: showFilters ? 'none' : '0',
+          transition: 'all 0.3s ease'
+        }}>
+          <div className="admin-search" style={{ flex: '1 1 200px', minWidth: '200px' }}>
+            <input 
+              placeholder="Search orders…" 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              style={{ width: '100%' }}
+            />
+          </div>
+
+          <select 
+            className="form-select" 
+            style={{ flex: '0 0 auto', minWidth: '140px' }} 
+            value={filterStatus} 
+            onChange={e => setFilterStatus(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            {statuses.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: '1 1 auto', flexWrap: 'wrap', minWidth: '280px' }}>
+            <FiCalendar size={16} style={{ color: 'var(--text-light)' }} />
+            <input 
+              type="date" 
+              className="form-input" 
+              style={{ flex: '1 1 120px', minWidth: '120px', padding: '8px 12px' }}
+              value={startDate} 
+              onChange={e => setStartDate(e.target.value)} 
+            />
+            <span style={{ color: 'var(--text-light)' }}>to</span>
+            <input 
+              type="date" 
+              className="form-input" 
+              style={{ flex: '1 1 120px', minWidth: '120px', padding: '8px 12px' }}
+              value={endDate} 
+              onChange={e => setEndDate(e.target.value)} 
+            />
+          </div>
+
+          {(search || filterStatus || startDate || endDate) && (
+            <button 
+              className="btn btn-sm" 
+              style={{ background: 'var(--bg-light)', padding: '8px 16px' }} 
+              onClick={clearFilters}
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
+
         {loading ? <LoadingSpinner /> : (
           <>
-            <div className="table-scroll">
+            {/* Desktop Table View */}
+            <div className="table-scroll" style={{ display: 'block' }}>
               <table className="admin-table">
-                <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {orders.map(o => {
                     const isNew = o.status === 'pending'
@@ -187,13 +252,19 @@ export default function AdminOrders() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
             {pages > 1 && (
-              <div className="pagination">
-                <button className="page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>‹</button>
+              <div className="pagination" style={{ marginTop: '20px' }}>
+                <button className="page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>
+                  <FiChevronLeft size={16} />
+                </button>
                 {Array.from({ length: Math.min(pages, 7) }, (_, i) => i + 1).map(p => (
                   <button key={p} className={`page-btn ${p === page ? 'active' : ''}`} onClick={() => setPage(p)}>{p}</button>
                 ))}
-                <button className="page-btn" disabled={page === pages} onClick={() => setPage(p => p + 1)}>›</button>
+                <button className="page-btn" disabled={page === pages} onClick={() => setPage(p => p + 1)}>
+                  <FiChevronRight size={16} />
+                </button>
               </div>
             )}
           </>
@@ -251,13 +322,14 @@ export default function AdminOrders() {
                   </div>
 
                   {orderDetail.notes && (
-                    <div style={{ marginBottom: '20px' }}>
+                    <div style={{ marginBottom: '20px', marginTop: '16px' }}>
                       <h4 style={{ fontSize: '0.9rem', marginBottom: '12px', fontWeight: 600 }}>Order Notes</h4>
                       <div style={{ background: 'var(--bg-light)', padding: '12px', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem', whiteSpace: 'pre-wrap' }}>
                         {orderDetail.notes}
                       </div>
                     </div>
                   )}
+                  
                   <div style={{ marginTop: '16px', fontSize: '0.875rem' }}>
                     <div style={{ marginBottom: '12px' }}>
                       <strong style={{ display: 'block', marginBottom: '8px' }}>Update Order Status:</strong>
