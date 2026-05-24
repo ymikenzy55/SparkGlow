@@ -52,6 +52,13 @@ exports.createProduct = async (req, res) => {
     productData.images = Array.isArray(req.body.images) ? req.body.images : req.body.images.split(',').map(s => s.trim()).filter(Boolean);
   }
   
+  // Process tags: split comma-separated string into array
+  if (productData.tags) {
+    productData.tags = Array.isArray(productData.tags) 
+      ? productData.tags 
+      : productData.tags.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  
   const product = await Product.create(productData);
   await product.populate('category', 'name slug');
   
@@ -88,6 +95,13 @@ exports.updateProduct = async (req, res) => {
   } else if (req.body.images) {
     // Handle URL-based images (backward compatibility)
     productData.images = Array.isArray(req.body.images) ? req.body.images : req.body.images.split(',').map(s => s.trim()).filter(Boolean);
+  }
+  
+  // Process tags: split comma-separated string into array
+  if (productData.tags !== undefined) {
+    productData.tags = Array.isArray(productData.tags) 
+      ? productData.tags 
+      : productData.tags.split(',').map(s => s.trim()).filter(Boolean);
   }
   
   const product = await Product.findByIdAndUpdate(req.params.id, productData, { new: true, runValidators: true }).populate('category', 'name');
