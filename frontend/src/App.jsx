@@ -43,6 +43,7 @@ const CategoryPage = lazyWithRetry(() => import('./pages/CategoryPage'))
 const ProductDetail = lazyWithRetry(() => import('./pages/ProductDetail'))
 const CartPage = lazyWithRetry(() => import('./pages/Cart'))
 const Checkout = lazyWithRetry(() => import('./pages/Checkout'))
+const OrderSuccess = lazyWithRetry(() => import('./pages/OrderSuccess'))
 const Login = lazyWithRetry(() => import('./pages/Login'))
 const Account = lazyWithRetry(() => import('./pages/Account'))
 const GoogleAuthSuccess = lazyWithRetry(() => import('./pages/GoogleAuthSuccess'))
@@ -132,6 +133,7 @@ export default function App() {
                 <Route element={<CheckoutLayout />}>
                   <Route path="/cart" element={<CartPage />} />
                   <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/order-success" element={<OrderSuccess />} />
                 </Route>
                 <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
                   <Route index element={<Navigate to="dashboard" replace />} />

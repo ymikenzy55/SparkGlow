@@ -93,14 +93,25 @@ export default function Checkout() {
       
       const res = await orderAPI.create(orderData)
       clearCart()
-      toast.success('Order placed successfully! Check your phone for confirmation.')
       
-      // Redirect guest users to homepage, logged-in users to account
-      if (!user) {
-        setTimeout(() => navigate('/'), 1500)
-      } else {
-        navigate('/account')
-      }
+      // Navigate to success page with order data
+      navigate('/order-success', { 
+        state: { 
+          order: {
+            orderId: res.data.order?._id?.slice(-8).toUpperCase() || res.data.orderId || 'N/A',
+            items: items.map(i => ({ name: i.name, quantity: i.qty, price: i.price })),
+            customerInfo: orderData.customerInfo,
+            guestInfo: orderData.guestInfo,
+            shippingAddress: orderData.shippingAddress,
+            subtotal: total,
+            shipping: shipping,
+            total: total + shipping,
+            paymentMethod: payMethod,
+            createdAt: new Date().toISOString()
+          }
+        },
+        replace: true 
+      })
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to place order')
     }
