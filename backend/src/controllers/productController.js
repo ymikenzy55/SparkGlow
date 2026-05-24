@@ -1,5 +1,17 @@
 const Product = require('../models/Product');
 
+// Helper to normalize tags to an array
+const normalizeTags = (product) => {
+  if (product && product.tags) {
+    if (typeof product.tags === 'string') {
+      product.tags = product.tags.split(',').map(t => t.trim()).filter(Boolean);
+    } else if (!Array.isArray(product.tags)) {
+      product.tags = [];
+    }
+  }
+  return product;
+};
+
 exports.getProducts = async (req, res) => {
   const { page = 1, limit = 12, category, sort, search, featured, minPrice, maxPrice } = req.query;
   const query = { isActive: true };
@@ -25,7 +37,7 @@ exports.getProducts = async (req, res) => {
   };
 
   const skip = (Number(page) - 1) * Number(limit);
-  const [products, total] = await Promise.all([
+  let [products, total] = await Promise.all([
     Product.find(query)
       .populate('category', 'name slug')
       .sort(sortMap[sort] || { createdAt: -1 })
@@ -35,23 +47,30 @@ exports.getProducts = async (req, res) => {
     Product.countDocuments(query),
   ]);
 
+  // Normalize tags for all products
+  products = products.map(normalizeTags);
+
   res.json({ success: true, products, total, page: Number(page), pages: Math.ceil(total / Number(limit)) });
 };
 
 exports.getProduct = async (req, res) => {
   const isId = /^[0-9a-fA-F]{24}$/.test(req.params.id);
   const query = isId ? { _id: req.params.id, isActive: true } : { slug: req.params.id, isActive: true };
-  const product = await Product.findOne(query)
+  let product = await Product.findOne(query)
     .populate('category', 'name slug')
     .populate('reviews.user', 'name');
   if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+  
+  // Normalize tags
+  product = normalizeTags(product.toObject ? product.toObject() : product);
+  
   res.json({ success: true, product });
 };
 
 exports.searchProducts = async (req, res) => {
   const { q } = req.query;
   if (!q) return res.json({ success: true, products: [] });
-  const products = await Product.find({
+  let products = await Product.find({
     isActive: true,
     $or: [
       { name: { $regex: q, $options: 'i' } },
@@ -59,14 +78,22 @@ exports.searchProducts = async (req, res) => {
       { description: { $regex: q, $options: 'i' } },
     ],
   }).populate('category', 'name slug').limit(15).lean();
+  
+  // Normalize tags
+  products = products.map(normalizeTags);
+  
   res.json({ success: true, products });
 };
 
 exports.getFeatured = async (req, res) => {
-  const products = await Product.find({ featured: true, isActive: true })
+  let products = await Product.find({ featured: true, isActive: true })
     .populate('category', 'name slug')
     .limit(8)
     .lean();
+  
+  // Normalize tags
+  products = products.map(normalizeTags);
+  
   res.json({ success: true, products });
 };
 

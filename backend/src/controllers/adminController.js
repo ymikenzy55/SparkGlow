@@ -6,6 +6,18 @@ const Message = require('../models/Message');
 const Notification = require('../models/Notification');
 const cloudinary = require('../config/cloudinary');
 
+// Helper to normalize tags to an array
+const normalizeTags = (product) => {
+  if (product && product.tags) {
+    if (typeof product.tags === 'string') {
+      product.tags = product.tags.split(',').map(t => t.trim()).filter(Boolean);
+    } else if (!Array.isArray(product.tags)) {
+      product.tags = [];
+    }
+  }
+  return product;
+};
+
 exports.getDashboard = async (req, res) => {
   const [totalUsers, totalProducts, totalOrders, revenueResult, recentOrders, lowStock] = await Promise.all([
     User.countDocuments({ role: 'user' }),
@@ -34,10 +46,14 @@ exports.getProducts = async (req, res) => {
   if (search) query.$or = [{ name: { $regex: search, $options: 'i' } }, { description: { $regex: search, $options: 'i' } }];
   if (category) query.category = category;
   const skip = (Number(page) - 1) * Number(limit);
-  const [products, total] = await Promise.all([
+  let [products, total] = await Promise.all([
     Product.find(query).populate('category', 'name').sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(),
     Product.countDocuments(query),
   ]);
+  
+  // Normalize tags for all products
+  products = products.map(normalizeTags);
+  
   res.json({ success: true, products, total, pages: Math.ceil(total / Number(limit)), page: Number(page) });
 };
 

@@ -260,11 +260,18 @@ export default function ProductDetail() {
             </div>
 
             {/* Tags */}
-            {product.tags?.length > 0 && (
-              <div className="pd-tags">
-                {product.tags.map(tag => <span key={tag} className="pd-tag">#{tag}</span>)}
-              </div>
-            )}
+            {(() => {
+              let tagsToDisplay = product.tags
+              if (typeof tagsToDisplay === 'string') {
+                tagsToDisplay = tagsToDisplay.split(',').map(t => t.trim()).filter(Boolean)
+              }
+              if (!Array.isArray(tagsToDisplay)) tagsToDisplay = []
+              return tagsToDisplay.length > 0 ? (
+                <div className="pd-tags">
+                  {tagsToDisplay.map(tag => <span key={tag} className="pd-tag">#{tag}</span>)}
+                </div>
+              ) : null
+            })()}
           </div>
         </div>
 
