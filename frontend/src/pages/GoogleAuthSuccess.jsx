@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import toast from 'react-hot-toast'
+import api from '../services/api'
 
 export default function GoogleAuthSuccess() {
   const navigate = useNavigate()
@@ -31,15 +32,9 @@ export default function GoogleAuthSuccess() {
         localStorage.setItem('sg_token', token)
 
         // Fetch user data
-        const response = await fetch('http://localhost:5000/api/auth/me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+        const { data } = await api.get('/auth/me')
 
-        const data = await response.json()
-
-        if (!response.ok || !data.success) {
+        if (!data.success) {
           throw new Error(data.message || 'Failed to fetch user data')
         }
 
