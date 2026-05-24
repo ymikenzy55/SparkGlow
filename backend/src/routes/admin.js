@@ -41,6 +41,7 @@ router.put('/notifications/read-all', ctrl.markAllNotificationsRead);
 // Messages
 router.get('/messages', ctrl.getMessages);
 router.put('/messages/:id/read', ctrl.markMessageRead);
+router.post('/messages/:id/reply', ctrl.replyToMessage);
 router.delete('/messages/:id', ctrl.deleteMessage);
 
 // Sales

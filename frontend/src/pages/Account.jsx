@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
-import { FiUser, FiShoppingBag, FiLock, FiLogOut, FiMessageSquare, FiDownload, FiPackage, FiX, FiMail, FiEye } from 'react-icons/fi'
+import { FiUser, FiShoppingBag, FiLock, FiLogOut, FiMessageSquare, FiDownload, FiPackage, FiX, FiMail, FiEye, FiCornerDownRight, FiInbox, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useSocket } from '../context/SocketContext'
 import { authAPI, orderAPI, messageAPI } from '../services/api'
@@ -28,6 +28,10 @@ export default function Account() {
   const [followUpForm, setFollowUpForm] = useState({ subject: '', body: '' })
   const [sendingFollowUp, setSendingFollowUp] = useState(false)
   const [showOrderDetail, setShowOrderDetail] = useState(null)
+  const [myMessages, setMyMessages] = useState([])
+  const [messagesLoading, setMessagesLoading] = useState(false)
+  const [expandedMsg, setExpandedMsg] = useState(null)
+  const [unreadReplies, setUnreadReplies] = useState(0)
 
   // Update tab when URL changes
   useEffect(() => {
@@ -47,7 +51,36 @@ export default function Account() {
       setOrdersLoading(true)
       orderAPI.getMyOrders().then(r => setOrders(r.data.orders)).catch(() => {}).finally(() => setOrdersLoading(false))
     }
+    if (tab === 'inbox') {
+      loadMyMessages()
+      // Mark replies as read when entering tab
+      messageAPI.markRepliesRead().then(() => setUnreadReplies(0)).catch(() => {})
+    }
   }, [tab])
+
+  const loadMyMessages = () => {
+    setMessagesLoading(true)
+    messageAPI.getMine()
+      .then(r => {
+        setMyMessages(r.data.messages)
+        const unread = r.data.messages.filter(m => !m.userReadReplies && m.replies?.length > 0).length
+        setUnreadReplies(unread)
+      })
+      .catch(() => {})
+      .finally(() => setMessagesLoading(false))
+  }
+
+  // Load unread reply count on mount
+  useEffect(() => {
+    if (user) {
+      messageAPI.getMine()
+        .then(r => {
+          const unread = r.data.messages.filter(m => !m.userReadReplies && m.replies?.length > 0).length
+          setUnreadReplies(unread)
+        })
+        .catch(() => {})
+    }
+  }, [user])
 
   // Real-time order status updates
   useEffect(() => {
@@ -64,10 +97,19 @@ export default function Account() {
 
     socket.on('order-status-changed', handleOrderStatusChanged)
 
+    const handleMessageReply = (payload) => {
+      toast.success(`Admin replied to: ${payload.subject}`)
+      setUnreadReplies(c => c + 1)
+      // Refresh if on inbox
+      if (tab === 'inbox') loadMyMessages()
+    }
+    socket.on('message-reply', handleMessageReply)
+
     return () => {
       socket.off('order-status-changed', handleOrderStatusChanged)
+      socket.off('message-reply', handleMessageReply)
     }
-  }, [socket])
+  }, [socket, tab])
 
   const saveProfile = async (e) => {
     e.preventDefault()
@@ -184,6 +226,14 @@ Thank you for shopping with SparkGlow!
           <button className={`account-nav-item ${tab === 'profile' ? 'active' : ''}`} onClick={() => changeTab('profile')}><FiUser /> Edit Profile</button>
           <button className={`account-nav-item ${tab === 'password' ? 'active' : ''}`} onClick={() => changeTab('password')}><FiLock /> Change Password</button>
           <button className={`account-nav-item ${tab === 'message' ? 'active' : ''}`} onClick={() => changeTab('message')}><FiMessageSquare /> Send Message</button>
+          <button className={`account-nav-item ${tab === 'inbox' ? 'active' : ''}`} onClick={() => changeTab('inbox')} style={{ position: 'relative' }}>
+            <FiInbox /> Inbox
+            {unreadReplies > 0 && (
+              <span style={{ marginLeft: 'auto', background: 'var(--primary)', color: '#fff', borderRadius: '10px', padding: '2px 8px', fontSize: '0.7rem', fontWeight: 700, minWidth: '20px', textAlign: 'center' }}>
+                {unreadReplies}
+              </span>
+            )}
+          </button>
           <button className="account-nav-item" style={{ color: '#e53935' }} onClick={logout}><FiLogOut /> Logout</button>
         </div>
         <motion.div className="account-content" key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -295,6 +345,106 @@ Thank you for shopping with SparkGlow!
                 <div className="form-group"><label className="form-label">New Password</label><input required type="password" className="form-input" minLength={6} value={pwForm.newPassword} onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))} /></div>
                 <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Changing…' : 'Change Password'}</button>
               </form>
+            </>
+          )}
+          {tab === 'inbox' && (
+            <>
+              <h2>My Inbox</h2>
+              <p style={{ color: 'var(--text-light)', marginBottom: '24px', fontSize: '0.875rem' }}>
+                Messages you've sent and replies from our team.
+              </p>
+              {messagesLoading ? (
+                <div style={{ padding: '40px', textAlign: 'center' }}>Loading…</div>
+              ) : myMessages.length === 0 ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-light)' }}>
+                  <FiInbox size={48} style={{ marginBottom: '12px', opacity: 0.5 }} />
+                  <p>No messages yet.</p>
+                  <button className="btn btn-primary" style={{ marginTop: '16px' }} onClick={() => changeTab('message')}>
+                    Send Your First Message
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {myMessages.map(msg => {
+                    const hasReplies = msg.replies && msg.replies.length > 0
+                    const isExpanded = expandedMsg === msg._id
+                    const hasUnread = !msg.userReadReplies && hasReplies
+                    return (
+                      <div
+                        key={msg._id}
+                        style={{
+                          border: `1px solid ${hasUnread ? 'var(--primary)' : 'var(--border)'}`,
+                          borderRadius: 'var(--radius-md)',
+                          background: hasUnread ? 'var(--primary-light)' : '#fff',
+                          overflow: 'hidden',
+                          transition: 'var(--transition)'
+                        }}
+                      >
+                        <div
+                          onClick={() => setExpandedMsg(isExpanded ? null : msg._id)}
+                          style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}
+                        >
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                              <strong style={{ fontSize: '0.95rem', color: 'var(--dark)' }}>{msg.subject}</strong>
+                              {hasReplies && (
+                                <span className="badge badge-pink" style={{ fontSize: '0.7rem' }}>
+                                  {msg.replies.length} {msg.replies.length === 1 ? 'reply' : 'replies'}
+                                </span>
+                              )}
+                              {hasUnread && (
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)', display: 'inline-block' }} />
+                              )}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}>
+                              Sent {new Date(msg.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div style={{ flexShrink: 0, color: 'var(--text-light)' }}>
+                            {isExpanded ? <FiChevronUp size={18} /> : <FiChevronDown size={18} />}
+                          </div>
+                        </div>
+
+                        {isExpanded && (
+                          <div style={{ padding: '0 16px 16px', borderTop: '1px solid var(--border)' }}>
+                            <div style={{ marginTop: '14px', marginBottom: '14px' }}>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600, marginBottom: '8px' }}>
+                                Your Message
+                              </div>
+                              <div style={{ padding: '14px', background: 'var(--bg-light)', borderRadius: 'var(--radius-sm)', fontSize: '0.875rem', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                                {msg.body}
+                              </div>
+                            </div>
+
+                            {hasReplies ? (
+                              <div>
+                                <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600, marginBottom: '8px' }}>
+                                  Replies from SparkGlow Team
+                                </div>
+                                <div className="msg-reply-thread">
+                                  {msg.replies.map((reply, i) => (
+                                    <div key={i} className="msg-reply-bubble">
+                                      <div className="msg-reply-meta">
+                                        <FiCornerDownRight size={12} />
+                                        SparkGlow Team • {new Date(reply.createdAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                      </div>
+                                      <div className="msg-reply-text">{reply.body}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <div style={{ padding: '14px', background: 'var(--bg-light)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', color: 'var(--text-light)', textAlign: 'center', fontStyle: 'italic' }}>
+                                No replies yet. We'll get back to you soon!
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </>
           )}
           {tab === 'message' && (

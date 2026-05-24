@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { adminAPI } from '../../services/api'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import { formatCedi } from '../../utils/currency'
-import { FiCalendar, FiDollarSign, FiShoppingBag, FiTrendingUp } from 'react-icons/fi'
+import { FiCalendar, FiShoppingBag, FiTrendingUp } from 'react-icons/fi'
 
 export default function AdminSales() {
   const [sales, setSales] = useState([])
@@ -150,8 +150,8 @@ export default function AdminSales() {
 
         <div className="stat-cards" style={{ marginBottom: '32px' }}>
           <div className="stat-card">
-            <div className="stat-card-icon green">
-              <FiDollarSign />
+            <div className="stat-card-icon green" style={{ fontSize: '1.4rem', fontWeight: 700, fontFamily: 'Poppins, sans-serif' }}>
+              GH₵
             </div>
             <h4>{formatCedi(stats.totalRevenue)}</h4>
             <p>Total Revenue</p>

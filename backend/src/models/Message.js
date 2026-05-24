@@ -7,6 +7,11 @@ const messageSchema = new mongoose.Schema({
   body: { type: String, required: true },
   read: { type: Boolean, default: false },
   repliedAt: { type: Date },
+  replies: [{
+    body: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  }],
+  userReadReplies: { type: Boolean, default: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Message', messageSchema);

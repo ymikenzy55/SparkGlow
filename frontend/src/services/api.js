@@ -53,6 +53,8 @@ export const orderAPI = {
 
 export const messageAPI = {
   send: (data) => api.post('/messages', data),
+  getMine: () => api.get('/messages/mine'),
+  markRepliesRead: () => api.put('/messages/mine/read'),
 }
 
 export const adminAPI = {
@@ -108,6 +110,7 @@ export const adminAPI = {
   // Messages
   getMessages: () => api.get('/admin/messages'),
   markMessageRead: (id) => api.put(`/admin/messages/${id}/read`),
+  replyToMessage: (id, body) => api.post(`/admin/messages/${id}/reply`, { body }),
   deleteMessage: (id) => api.delete(`/admin/messages/${id}`),
   // Sales
   getSales: (params) => api.get('/admin/sales', { params }),

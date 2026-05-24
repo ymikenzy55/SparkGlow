@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { adminAPI } from '../../services/api'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
-import { FiMail, FiTrash2, FiCheck, FiX } from 'react-icons/fi'
+import { FiMail, FiTrash2, FiCheck, FiX, FiSend, FiCornerDownRight } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 import ConfirmModal from '../../components/common/ConfirmModal'
 
@@ -10,6 +10,8 @@ export default function AdminMessages() {
   const [loading, setLoading] = useState(true)
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
+  const [replyText, setReplyText] = useState('')
+  const [sendingReply, setSendingReply] = useState(false)
 
   const load = () => {
     setLoading(true)
@@ -27,6 +29,28 @@ export default function AdminMessages() {
       load()
     } catch {
       toast.error('Failed to mark as read')
+    }
+  }
+
+  const sendReply = async () => {
+    if (!replyText.trim()) {
+      toast.error('Reply cannot be empty')
+      return
+    }
+    setSendingReply(true)
+    try {
+      const res = await adminAPI.replyToMessage(selectedMessage._id, replyText)
+      toast.success('Reply sent')
+      // Update selected message with new reply
+      const updated = res.data.message
+      setSelectedMessage(updated)
+      // Update messages list
+      setMessages(prev => prev.map(m => m._id === updated._id ? updated : m))
+      setReplyText('')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to send reply')
+    } finally {
+      setSendingReply(false)
     }
   }
 
@@ -74,7 +98,7 @@ export default function AdminMessages() {
                   {messages.map(msg => (
                     <div
                       key={msg._id}
-                      onClick={() => { setSelectedMessage(msg); if (!msg.read) markAsRead(msg._id) }}
+                      onClick={() => { setSelectedMessage(msg); setReplyText(''); if (!msg.read) markAsRead(msg._id) }}
                       style={{
                         padding: '16px',
                         background: msg.read ? 'var(--bg-card)' : 'var(--primary-light)',
@@ -147,6 +171,49 @@ export default function AdminMessages() {
                   maxWidth: '100%'
                 }}>
                   {selectedMessage.body}
+                </div>
+
+                {/* Existing Replies */}
+                {selectedMessage.replies && selectedMessage.replies.length > 0 && (
+                  <div style={{ marginBottom: '20px' }}>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '12px', color: 'var(--text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Your Replies ({selectedMessage.replies.length})
+                    </h4>
+                    <div className="msg-reply-thread">
+                      {selectedMessage.replies.map((reply, i) => (
+                        <div key={i} className="msg-reply-bubble">
+                          <div className="msg-reply-meta">
+                            <FiCornerDownRight size={12} />
+                            Admin • {formatDate(reply.createdAt)}
+                          </div>
+                          <div className="msg-reply-text">{reply.body}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Reply Form */}
+                <div className="msg-reply-form" style={{ marginBottom: '16px' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--dark)' }}>
+                    {selectedMessage.replies && selectedMessage.replies.length > 0 ? 'Send another reply' : 'Reply to customer'}
+                  </label>
+                  <textarea
+                    value={replyText}
+                    onChange={e => setReplyText(e.target.value)}
+                    placeholder={`Type your reply to ${selectedMessage.name}...`}
+                    rows={4}
+                    disabled={sendingReply}
+                  />
+                  <button
+                    className="btn btn-primary"
+                    onClick={sendReply}
+                    disabled={sendingReply || !replyText.trim()}
+                    style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '8px' }}
+                  >
+                    <FiSend size={14} />
+                    {sendingReply ? 'Sending...' : 'Send Reply'}
+                  </button>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>

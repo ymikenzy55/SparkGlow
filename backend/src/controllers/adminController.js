@@ -491,6 +491,35 @@ exports.deleteMessage = async (req, res) => {
   res.json({ success: true, message: 'Message deleted' });
 };
 
+exports.replyToMessage = async (req, res) => {
+  const { body } = req.body;
+  if (!body || !body.trim()) {
+    return res.status(400).json({ success: false, message: 'Reply cannot be empty' });
+  }
+  const msg = await Message.findById(req.params.id);
+  if (!msg) {
+    return res.status(404).json({ success: false, message: 'Message not found' });
+  }
+  msg.replies.push({ body: body.trim() });
+  msg.repliedAt = new Date();
+  msg.read = true;
+  msg.userReadReplies = false;
+  await msg.save();
+
+  // Notify the user via socket if logged in (matched by email)
+  const User = require('../models/User');
+  const user = await User.findOne({ email: msg.email });
+  const io = req.app.get('io');
+  if (io && user) {
+    io.to(`user-${user._id}`).emit('message-reply', {
+      messageId: msg._id,
+      subject: msg.subject,
+    });
+  }
+
+  res.json({ success: true, message: msg });
+};
+
 // ==================== IMAGE UPLOAD ====================
 
 exports.uploadImages = async (req, res) => {
