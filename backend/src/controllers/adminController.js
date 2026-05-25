@@ -20,10 +20,10 @@ const normalizeTags = (product) => {
 
 exports.getDashboard = async (req, res) => {
   const [totalUsers, totalProducts, totalOrders, revenueResult, recentOrders, lowStock] = await Promise.all([
-    User.countDocuments({ role: 'user' }),
+    User.countDocuments({ role: { $ne: 'admin' } }),
     Product.countDocuments({ isActive: true }),
     Order.countDocuments(),
-    Order.aggregate([{ $match: { paymentStatus: 'paid' } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
+    Order.aggregate([{ $group: { _id: null, total: { $sum: '$total' } } }]),
     Order.find().sort({ createdAt: -1 }).limit(5).populate('user', 'name email').lean(),
     Product.find({ stock: { $lte: 5 }, isActive: true }).select('name stock price').limit(10).lean(),
   ]);
@@ -341,7 +341,7 @@ exports.deleteCategory = async (req, res) => {
 
 exports.getSales = async (req, res) => {
   const { startDate, endDate } = req.query;
-  const matchStage = { paymentStatus: 'paid' };
+  const matchStage = {};
   
   if (startDate || endDate) {
     matchStage.createdAt = {};
@@ -355,34 +355,43 @@ exports.getSales = async (req, res) => {
   
   const salesByDate = await Order.aggregate([
     { $match: matchStage },
+    { $unwind: '$items' },
     {
       $group: {
         _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
         revenue: { $sum: '$total' },
-        orderCount: { $sum: 1 },
-        itemsSold: { $sum: { $sum: '$items.quantity' } }
+        orderCount: { $addToSet: '$_id' },
+        itemsSold: { $sum: '$items.quantity' }
       }
     },
-    { $sort: { _id: -1 } },
     {
       $project: {
         _id: 0,
         date: '$_id',
-        revenue: 1,
-        orderCount: 1,
+        revenue: { $divide: ['$revenue', { $size: '$orderCount' }] },
+        orderCount: { $size: '$orderCount' },
         itemsSold: 1
       }
-    }
+    },
+    { $sort: { date: -1 } }
   ]);
   
   const stats = await Order.aggregate([
     { $match: matchStage },
+    { $unwind: '$items' },
     {
       $group: {
         _id: null,
         totalRevenue: { $sum: '$total' },
-        totalOrders: { $sum: 1 },
-        totalSales: { $sum: { $sum: '$items.quantity' } }
+        orderIds: { $addToSet: '$_id' },
+        totalSales: { $sum: '$items.quantity' }
+      }
+    },
+    {
+      $project: {
+        totalRevenue: { $divide: ['$totalRevenue', { $size: '$orderIds' }] },
+        totalOrders: { $size: '$orderIds' },
+        totalSales: 1
       }
     }
   ]);
@@ -458,8 +467,9 @@ exports.deleteAdmin = async (req, res) => {
 // ==================== NOTIFICATIONS ====================
 
 exports.getNotifications = async (req, res) => {
-  const notifications = await Notification.find().sort({ createdAt: -1 }).limit(50).lean();
-  const unreadCount = await Notification.countDocuments({ read: false });
+  // Only fetch unread notifications
+  const notifications = await Notification.find({ read: false }).sort({ createdAt: -1 }).limit(50).lean();
+  const unreadCount = notifications.length;
   res.json({ success: true, notifications, unreadCount });
 };
 
@@ -471,6 +481,11 @@ exports.markNotificationRead = async (req, res) => {
 exports.markAllNotificationsRead = async (req, res) => {
   await Notification.updateMany({ read: false }, { read: true });
   res.json({ success: true });
+};
+
+exports.deleteNotification = async (req, res) => {
+  await Notification.findByIdAndDelete(req.params.id);
+  res.json({ success: true, message: 'Notification deleted' });
 };
 
 // ==================== MESSAGES ====================

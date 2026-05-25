@@ -37,6 +37,7 @@ router.delete('/admins/:id', ctrl.deleteAdmin);
 router.get('/notifications', ctrl.getNotifications);
 router.put('/notifications/:id/read', ctrl.markNotificationRead);
 router.put('/notifications/read-all', ctrl.markAllNotificationsRead);
+router.delete('/notifications/:id', ctrl.deleteNotification);
 
 // Messages
 router.get('/messages', ctrl.getMessages);

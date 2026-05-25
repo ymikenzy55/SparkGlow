@@ -9,6 +9,7 @@ import { authAPI, orderAPI, messageAPI } from '../services/api'
 import { formatCedi } from '../utils/currency'
 import { getImageUrl } from '../utils/imageUrl'
 import Breadcrumb from '../components/common/Breadcrumb'
+import ConfirmModal from '../components/common/ConfirmModal'
 
 export default function Account() {
   const { user, logout, updateUser } = useAuth()
@@ -28,6 +29,7 @@ export default function Account() {
   const [followUpForm, setFollowUpForm] = useState({ subject: '', body: '' })
   const [sendingFollowUp, setSendingFollowUp] = useState(false)
   const [showOrderDetail, setShowOrderDetail] = useState(null)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [myMessages, setMyMessages] = useState([])
   const [messagesLoading, setMessagesLoading] = useState(false)
   const [expandedMsg, setExpandedMsg] = useState(null)
@@ -163,41 +165,101 @@ export default function Account() {
   }
 
   const downloadReceipt = (order) => {
-    const receiptContent = `
-SPARKGLOW RECEIPT
-=====================================
-Order ID: ${order._id.slice(-8).toUpperCase()}
-Date: ${new Date(order.createdAt).toLocaleString()}
-
-Customer Information:
-Name: ${order.customerInfo?.name || user?.name || 'N/A'}
-Email: ${order.customerInfo?.email || user?.email || 'N/A'}
-Phone: ${order.customerInfo?.phone || 'N/A'}
-
-Delivery Address:
-Region: ${order.shippingAddress?.region || order.customerInfo?.region || 'N/A'}
-Location: ${order.shippingAddress?.location || order.customerInfo?.location || 'N/A'}
-
-Items Ordered:
-${order.items.map(item => `- ${item.name} x${item.quantity} - ${formatCedi(item.price * item.quantity)}`).join('\n')}
-
-Order Summary:
-Subtotal: ${formatCedi(order.subtotal)}
-Shipping: ${formatCedi(order.shipping)}
-Total: ${formatCedi(order.total)}
-
-Payment Method: ${order.paymentMethod.toUpperCase()}
-Payment Status: ${order.paymentStatus.toUpperCase()}
-Order Status: ${order.status.toUpperCase()}
-
-Thank you for shopping with SparkGlow!
-=====================================
+    const receiptHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>SparkGlow Receipt - ${order._id.slice(-8).toUpperCase()}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
+    .receipt { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2 10px rgba(0,0,0,0.1); }
+    .receipt-header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 30px; text-align: center; }
+    .logo { width: 60px; height: 60px; margin: 0 auto 12px; }
+    .company-name { font-size: 1.8rem; font-weight: 700; margin-bottom: 8px; }
+    .company-name span { color: #dc143c; }
+    .contact-info { font-size: 0.85rem; opacity: 0.9; margin-top: 12px; }
+    .contact-info a { color: #fff; text-decoration: none; }
+    .receipt-body { padding: 30px; }
+    .section { margin-bottom: 24px; }
+    .section-title { font-size: 0.9rem; font-weight: 600; color: #333; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+    .info-row:last-child { border-bottom: none; }
+    .item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .item:last-child { border-bottom: none; }
+    .total-section { background: #f8f8f8; padding: 16px; border-radius: 6px; margin-top: 20px; }
+    .total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 0.9rem; }
+    .total-row.final { font-size: 1.2rem; font-weight: 700; color: #dc143c; padding-top: 12px; border-top: 2px solid #ddd; margin-top: 8px; }
+    .receipt-footer { text-align: center; padding: 20px; background: #f8f8f8; color: #888; font-size: 0.85rem; }
+    .thank-you { font-size: 1.1rem; font-weight: 600; color: #333; margin-bottom: 8px; }
+    @media print { body { background: #fff; padding: 0; } .receipt { box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <div class="receipt">
+    <div class="receipt-header">
+      <img src="/logo.png" alt="SparkGlow" class="logo">
+      <div class="company-name">Spark<span>Glow</span></div>
+      <p>Premium Bath & Body Care</p>
+      <div class="contact-info">
+        📞 Call us: <a href="tel:0246871565">0246871565</a><br>
+        💬 WhatsApp: <a href="https://wa.me/233246871565">+233 24 687 1565</a>
+      </div>
+    </div>
+    
+    <div class="receipt-body">
+      <div class="section">
+        <div class="section-title">Order Details</div>
+        <div class="info-row"><strong>Order ID:</strong> <span>#${order._id.slice(-8).toUpperCase()}</span></div>
+        <div class="info-row"><strong>Date:</strong> <span>${new Date(order.createdAt).toLocaleString()}</span></div>
+        <div class="info-row"><strong>Status:</strong> <span style="text-transform: capitalize; color: #dc143c; font-weight: 600;">${order.status}</span></div>
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Customer Information</div>
+        <div class="info-row"><strong>Name:</strong> <span>${order.customerInfo?.name || user?.name || 'N/A'}</span></div>
+        <div class="info-row"><strong>Email:</strong> <span>${order.customerInfo?.email || user?.email || 'N/A'}</span></div>
+        ${order.customerInfo?.phone ? `<div class="info-row"><strong>Phone:</strong> <span>${order.customerInfo.phone}</span></div>` : ''}
+        ${order.shippingAddress?.region ? `<div class="info-row"><strong>Region:</strong> <span>${order.shippingAddress.region}</span></div>` : ''}
+        ${order.shippingAddress?.location ? `<div class="info-row"><strong>Location:</strong> <span>${order.shippingAddress.location}</span></div>` : ''}
+      </div>
+      
+      <div class="section">
+        <div class="section-title">Items Ordered</div>
+        ${order.items.map(item => `
+          <div class="item">
+            <div>
+              <div style="font-weight: 600; margin-bottom: 4px;">${item.name}</div>
+              <div style="font-size: 0.85rem; color: #888;">Qty: ${item.quantity} × ${formatCedi(item.price)}</div>
+            </div>
+            <div style="font-weight: 600; color: #dc143c;">${formatCedi(item.quantity * item.price)}</div>
+          </div>
+        `).join('')}
+      </div>
+      
+      <div class="total-section">
+        <div class="total-row"><span>Subtotal:</span> <span>${formatCedi(order.subtotal)}</span></div>
+        <div class="total-row"><span>Shipping:</span> <span>${order.shipping === 0 ? 'FREE' : formatCedi(order.shipping)}</span></div>
+        <div class="total-row final"><span>Total:</span> <span>${formatCedi(order.total)}</span></div>
+      </div>
+    </div>
+    
+    <div class="receipt-footer">
+      <div class="thank-you">Thank you for your purchase!</div>
+      <p>We appreciate your business and hope you enjoy your products.</p>
+      <p style="margin-top: 8px;">For support, contact us at 0246871565</p>
+    </div>
+  </div>
+</body>
+</html>
     `
-    const blob = new Blob([receiptContent], { type: 'text/plain' })
+    
+    const blob = new Blob([receiptHTML], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `SparkGlow-Receipt-${order._id.slice(-8).toUpperCase()}.txt`
+    a.download = `SparkGlow-Receipt-${order._id.slice(-8).toUpperCase()}.html`
     a.click()
     URL.revokeObjectURL(url)
     toast.success('Receipt downloaded!')
@@ -211,8 +273,23 @@ Thank you for shopping with SparkGlow!
 
   const statusClass = (s) => ({ pending: 'status-pending', processing: 'status-processing', shipped: 'status-shipped', delivered: 'status-delivered', cancelled: 'status-cancelled' }[s] || 'status-pending')
 
+  const handleLogout = () => {
+    logout()
+    navigate('/')
+  }
+
   return (
     <div className="container" style={{ padding: '40px 24px' }}>
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+        title="Logout Confirmation"
+        message="Are you sure you want to logout? You'll need to sign in again to access your account."
+        confirmText="Yes, Logout"
+        cancelText="Cancel"
+        type="warning"
+      />
       <Breadcrumb />
       <h2 style={{ marginBottom: '28px' }}>My <span style={{ color: 'var(--primary)' }}>Account</span></h2>
       <div className="account-grid">
@@ -234,7 +311,7 @@ Thank you for shopping with SparkGlow!
               </span>
             )}
           </button>
-          <button className="account-nav-item" style={{ color: '#e53935' }} onClick={logout}><FiLogOut /> Logout</button>
+          <button className="account-nav-item" style={{ color: '#e53935' }} onClick={() => setShowLogoutModal(true)}><FiLogOut /> Logout</button>
         </div>
         <motion.div className="account-content" key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           {tab === 'orders' && (

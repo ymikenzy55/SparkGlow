@@ -30,7 +30,7 @@ export default function ProductCard({ product }) {
       <Link to={`/product/${product.slug || product._id}`}>
         <div className="product-card-img">
           <img src={getImageUrl(product.images?.[0])} alt={product.name} loading="lazy" />
-          {discount ? <span className="product-badge product-badge-sale">-{discount}%</span> : <span className="product-badge product-badge-new">New</span>}
+          {discount ? <span className="product-badge product-badge-sale">{discount}% OFF</span> : <span className="product-badge product-badge-new">New</span>}
           <div className="product-card-actions">
             <button className="product-action-btn" title="Quick view" onClick={e => e.preventDefault()}><FiEye /></button>
           </div>

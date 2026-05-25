@@ -111,6 +111,7 @@ export const adminAPI = {
   getNotifications: () => api.get('/admin/notifications'),
   markNotificationRead: (id) => api.put(`/admin/notifications/${id}/read`),
   markAllNotificationsRead: () => api.put('/admin/notifications/read-all'),
+  deleteNotification: (id) => api.delete(`/admin/notifications/${id}`),
   // Messages
   getMessages: () => api.get('/admin/messages'),
   markMessageRead: (id) => api.put(`/admin/messages/${id}/read`),

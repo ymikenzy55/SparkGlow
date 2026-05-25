@@ -5,6 +5,7 @@ import { GiCash } from 'react-icons/gi'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
 import { adminAPI } from '../../services/api'
+import ConfirmModal from '../../components/common/ConfirmModal'
 
 const navItems = [
   { to: 'dashboard', icon: FiGrid, label: 'Dashboard' },
@@ -26,6 +27,7 @@ export default function AdminLayout() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showWelcome, setShowWelcome] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   useEffect(() => {
     const hasSeenWelcome = localStorage.getItem('adminWelcomeSeen')
@@ -53,10 +55,15 @@ export default function AdminLayout() {
 
   const markAsRead = async (id, link) => {
     try {
+      // Mark as read
       await adminAPI.markNotificationRead(id)
-      loadNotifications()
+      
+      // Update local state to remove the notification immediately
+      setNotifications(prev => prev.filter(n => n._id !== id))
+      setUnreadCount(prev => Math.max(0, prev - 1))
       setShowNotifications(false)
-      // Fix notification routing - route to messages page for new_message type
+      
+      // Navigate to the page
       if (link) {
         if (link.includes('/admin/messages') || link === '/admin/messages') {
           navigate('/admin/messages')
@@ -64,8 +71,17 @@ export default function AdminLayout() {
           navigate(link)
         }
       }
+      
+      // Delete notification in background after navigation
+      setTimeout(async () => {
+        try {
+          await adminAPI.deleteNotification(id)
+        } catch (err) {
+          // Silent fail - notification already removed from UI
+        }
+      }, 1000)
     } catch (err) {
-      // Silent fail
+      toast.error('Failed to process notification')
     }
   }
 
@@ -78,8 +94,23 @@ export default function AdminLayout() {
     }
   }
 
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
   return (
     <div className="admin-layout">
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+        title="Logout Confirmation"
+        message="Are you sure you want to logout from the admin panel?"
+        confirmText="Yes, Logout"
+        cancelText="Cancel"
+        type="warning"
+      />
       {showWelcome && (
         <>
           <div className="modal-overlay" onClick={() => setShowWelcome(false)} />
@@ -125,7 +156,7 @@ export default function AdminLayout() {
         <div style={{ marginTop: 'auto' }}>
           <div style={{ padding: '16px 12px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
             <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', marginBottom: '8px' }}>{user?.name}</div>
-            <button className="admin-nav-item" style={{ width: '100%' }} onClick={() => { logout(); navigate('/login') }}><FiLogOut size={16} /> Logout</button>
+            <button className="admin-nav-item" style={{ width: '100%' }} onClick={() => setShowLogoutModal(true)}><FiLogOut size={16} /> Logout</button>
           </div>
           <a 
             href="https://portfolio-sooty-eight-54.vercel.app/" 

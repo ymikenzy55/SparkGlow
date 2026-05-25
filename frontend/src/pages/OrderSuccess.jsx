@@ -62,6 +62,7 @@ export default function OrderSuccess() {
             padding: 24px;
             text-align: center;
           }
+          .logo { width: 50px; height: 50px; margin: 0 auto 8px; display: block; }
           .logo-text {
             font-family: 'Playfair Display', serif;
             font-size: 1.8rem;
@@ -72,6 +73,15 @@ export default function OrderSuccess() {
           .receipt-header p {
             font-size: 0.8rem;
             opacity: 0.8;
+          }
+          .contact-info {
+            font-size: 0.75rem;
+            opacity: 0.85;
+            margin-top: 10px;
+          }
+          .contact-info a {
+            color: #fff;
+            text-decoration: none;
           }
           .receipt-body { padding: 24px; }
           .success-badge {
@@ -246,10 +256,15 @@ export default function OrderSuccess() {
             padding: '24px', 
             textAlign: 'center' 
           }}>
+            <img src="/logo.png" alt="SparkGlow" style={{ width: '50px', height: '50px', margin: '0 auto 8px', display: 'block' }} />
             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: '1.8rem', fontWeight: 800, marginBottom: '4px' }}>
               Spark<span style={{ color: '#dc143c' }}>Glow</span>
             </div>
-            <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>Beauty & Skincare</p>
+            <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>Premium Bath & Body Care</p>
+            <div style={{ fontSize: '0.75rem', opacity: 0.85, marginTop: '10px' }}>
+              📞 <a href="tel:0246871565" style={{ color: '#fff', textDecoration: 'none' }}>0246871565</a> | 
+              💬 <a href="https://wa.me/233246871565" target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'none' }}>WhatsApp</a>
+            </div>
           </div>
 
           {/* Receipt Body */}
