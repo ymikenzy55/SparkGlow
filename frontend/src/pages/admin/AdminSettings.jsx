@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { FiLock, FiMail, FiUsers, FiTrash2, FiUserPlus } from 'react-icons/fi'
+import { FiLock, FiMail, FiUsers, FiTrash2, FiUserPlus, FiEye, FiEyeOff } from 'react-icons/fi'
 import { adminAPI } from '../../services/api'
 import LoadingSpinner from '../../components/common/LoadingSpinner'
 import ConfirmModal from '../../components/common/ConfirmModal'
@@ -13,6 +13,9 @@ export default function AdminSettings() {
   const [emailForm, setEmailForm] = useState({ newEmail: '', password: '' })
   const [addAdminEmail, setAddAdminEmail] = useState('')
   const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: null })
+  const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false, emailPw: false })
+
+  const togglePw = (k) => setShowPw(s => ({ ...s, [k]: !s[k] }))
 
   useEffect(() => {
     if (activeTab === 'admins') loadAdmins()
@@ -179,33 +182,48 @@ export default function AdminSettings() {
           <form onSubmit={handlePasswordChange} style={{ maxWidth: '500px' }}>
             <div className="form-group">
               <label className="form-label">Current Password *</label>
-              <input 
-                type="password" 
-                required 
-                className="form-input" 
-                value={passwordForm.currentPassword} 
-                onChange={e => setPasswordForm(f => ({ ...f, currentPassword: e.target.value }))} 
-              />
+              <div className="pw-input-wrapper">
+                <input 
+                  type={showPw.current ? 'text' : 'password'} 
+                  required 
+                  className="form-input" 
+                  value={passwordForm.currentPassword} 
+                  onChange={e => setPasswordForm(f => ({ ...f, currentPassword: e.target.value }))} 
+                />
+                <button type="button" className="pw-toggle-btn" onClick={() => togglePw('current')} aria-label={showPw.current ? 'Hide password' : 'Show password'}>
+                  {showPw.current ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
             </div>
             <div className="form-group">
               <label className="form-label">New Password *</label>
-              <input 
-                type="password" 
-                required 
-                className="form-input" 
-                value={passwordForm.newPassword} 
-                onChange={e => setPasswordForm(f => ({ ...f, newPassword: e.target.value }))} 
-              />
+              <div className="pw-input-wrapper">
+                <input 
+                  type={showPw.newPw ? 'text' : 'password'} 
+                  required 
+                  className="form-input" 
+                  value={passwordForm.newPassword} 
+                  onChange={e => setPasswordForm(f => ({ ...f, newPassword: e.target.value }))} 
+                />
+                <button type="button" className="pw-toggle-btn" onClick={() => togglePw('newPw')} aria-label={showPw.newPw ? 'Hide password' : 'Show password'}>
+                  {showPw.newPw ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
             </div>
             <div className="form-group">
               <label className="form-label">Confirm New Password *</label>
-              <input 
-                type="password" 
-                required 
-                className="form-input" 
-                value={passwordForm.confirmPassword} 
-                onChange={e => setPasswordForm(f => ({ ...f, confirmPassword: e.target.value }))} 
-              />
+              <div className="pw-input-wrapper">
+                <input 
+                  type={showPw.confirm ? 'text' : 'password'} 
+                  required 
+                  className="form-input" 
+                  value={passwordForm.confirmPassword} 
+                  onChange={e => setPasswordForm(f => ({ ...f, confirmPassword: e.target.value }))} 
+                />
+                <button type="button" className="pw-toggle-btn" onClick={() => togglePw('confirm')} aria-label={showPw.confirm ? 'Hide password' : 'Show password'}>
+                  {showPw.confirm ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
             </div>
             <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading ? 'Updating...' : 'Update Password'}
@@ -227,13 +245,18 @@ export default function AdminSettings() {
             </div>
             <div className="form-group">
               <label className="form-label">Confirm Password *</label>
-              <input 
-                type="password" 
-                required 
-                className="form-input" 
-                value={emailForm.password} 
-                onChange={e => setEmailForm(f => ({ ...f, password: e.target.value }))} 
-              />
+              <div className="pw-input-wrapper">
+                <input 
+                  type={showPw.emailPw ? 'text' : 'password'} 
+                  required 
+                  className="form-input" 
+                  value={emailForm.password} 
+                  onChange={e => setEmailForm(f => ({ ...f, password: e.target.value }))} 
+                />
+                <button type="button" className="pw-toggle-btn" onClick={() => togglePw('emailPw')} aria-label={showPw.emailPw ? 'Hide password' : 'Show password'}>
+                  {showPw.emailPw ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
             </div>
             <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading ? 'Updating...' : 'Update Email'}

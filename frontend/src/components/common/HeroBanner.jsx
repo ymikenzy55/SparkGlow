@@ -2,39 +2,82 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiArrowRight, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
-
-const banners = [
-  {
-    id: 1,
-    title: 'Luxurious Bath Experience',
-    subtitle: 'Premium Soaps & Body Care',
-    description: 'Indulge in our handcrafted soaps made with natural ingredients for a refreshing cleanse.',
-    image: '/banner1.jpg',
-    cta: 'Shop Soaps',
-    link: '/shop'
-  },
-  {
-    id: 2,
-    title: 'Pure & Natural Cleansing',
-    subtitle: 'Organic Liquid Soaps',
-    description: 'Experience gentle care with our organic liquid soaps that nourish and protect your skin.',
-    image: '/banner2.jpg',
-    cta: 'Explore Collection',
-    link: '/shop'
-  }
-]
+import { heroBannerAPI } from '../../services/api'
+import { useSocket } from '../../context/SocketContext'
 
 export default function HeroBanner() {
+  const [banners, setBanners] = useState([])
+  const [loading, setLoading] = useState(true)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [direction, setDirection] = useState(0)
+  const { socket } = useSocket()
 
   useEffect(() => {
+    heroBannerAPI.getAll()
+      .then(res => { setBanners(res.data.banners || []) })
+      .catch(() => setBanners([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  // Listen for real-time hero banner updates
+  useEffect(() => {
+    if (!socket) return
+
+    socket.on('hero-banner-created', () => {
+      heroBannerAPI.getAll().then(res => setBanners(res.data.banners || []))
+    })
+
+    socket.on('hero-banner-updated', () => {
+      heroBannerAPI.getAll().then(res => setBanners(res.data.banners || []))
+    })
+
+    socket.on('hero-banner-deleted', () => {
+      heroBannerAPI.getAll().then(res => setBanners(res.data.banners || []))
+    })
+
+    return () => {
+      socket.off('hero-banner-created')
+      socket.off('hero-banner-updated')
+      socket.off('hero-banner-deleted')
+    }
+  }, [socket])
+
+  useEffect(() => {
+    if (banners.length === 0) return
     const timer = setInterval(() => {
       setDirection(1)
       setCurrentSlide((prev) => (prev + 1) % banners.length)
     }, 5000)
     return () => clearInterval(timer)
-  }, [])
+  }, [banners.length])
+
+  // Show loading or fallback if no banners
+  if (loading || banners.length === 0) {
+    return (
+      <section className="hero-banner">
+        <div className="hero-banner-container">
+          <div className="hero-slide">
+            <div className="hero-slide-bg hero-slide-bg-gradient">
+              <div className="hero-slide-overlay"></div>
+            </div>
+            <div className="container hero-slide-content">
+              <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }}>
+                <div className="hero-badge">✦ Premium Soaps & Body Care</div>
+                <h1>Luxurious Bath Experience</h1>
+                <p>Indulge in our handcrafted soaps made with natural ingredients for a refreshing cleanse.</p>
+                <div className="hero-btns">
+                  <Link to="/shop" className="btn btn-primary">Shop Now <FiArrowRight /></Link>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  // Get current banner safely after we know banners exist
+  const currentBanner = banners[currentSlide] || banners[0]
 
   const slideVariants = {
     enter: (direction) => ({
@@ -97,7 +140,7 @@ export default function HeroBanner() {
             className="hero-slide"
           >
             <div className="hero-slide-bg">
-              <img src={banners[currentSlide].image} alt={banners[currentSlide].title} />
+              <img src={currentBanner.image} alt={currentBanner.title || 'SparkGlow'} />
               <div className="hero-slide-overlay"></div>
             </div>
             <div className="container hero-slide-content">
@@ -106,12 +149,12 @@ export default function HeroBanner() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
               >
-                <div className="hero-badge">✦ {banners[currentSlide].subtitle}</div>
-                <h1>{banners[currentSlide].title}</h1>
-                <p>{banners[currentSlide].description}</p>
+                <div className="hero-badge">✦ {currentBanner.subtitle || 'Premium Soaps & Body Care'}</div>
+                <h1>{currentBanner.title || 'Luxurious Bath Experience'}</h1>
+                <p>{currentBanner.description || 'Indulge in our handcrafted soaps made with natural ingredients for a refreshing cleanse.'}</p>
                 <div className="hero-btns">
-                  <Link to={banners[currentSlide].link} className="btn btn-primary">
-                    {banners[currentSlide].cta} <FiArrowRight />
+                  <Link to={currentBanner.link || '/shop'} className="btn btn-primary">
+                    {currentBanner.cta || 'Shop Now'} <FiArrowRight />
                   </Link>
                   <Link to="/shop" className="btn" style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '2px solid rgba(255,255,255,0.3)' }}>View All Products</Link>
                 </div>

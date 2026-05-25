@@ -56,6 +56,7 @@ const AdminCategories = lazyWithRetry(() => import('./pages/admin/AdminCategorie
 const AdminSettings = lazyWithRetry(() => import('./pages/admin/AdminSettings'))
 const AdminSales = lazyWithRetry(() => import('./pages/admin/AdminSales'))
 const AdminMessages = lazyWithRetry(() => import('./pages/admin/AdminMessages'))
+const AdminHeroBanners = lazyWithRetry(() => import('./pages/admin/AdminHeroBanners'))
 
 function PublicLayout() {
   const location = useLocation()
@@ -144,6 +145,7 @@ export default function App() {
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="categories" element={<AdminCategories />} />
                   <Route path="messages" element={<AdminMessages />} />
+                  <Route path="hero-banners" element={<AdminHeroBanners />} />
                   <Route path="settings" element={<AdminSettings />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />

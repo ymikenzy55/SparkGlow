@@ -9,12 +9,14 @@ A modern, full-stack e-commerce platform for bath and body care products built w
 - **Shopping Cart**: Persistent cart with real-time updates
 - **Order Management**: Complete order processing and tracking system
 - **Admin Dashboard**: Comprehensive admin panel for managing products, orders, users, and categories
-- **Real-time Notifications**: Socket.IO integration for live updates
-- **Responsive Design**: Mobile-first design approach
+- **Hero Banner Management**: Dynamic homepage banners with real-time updates
+- **Real-time Notifications**: Socket.IO integration for live updates across all features
+- **Responsive Design**: Mobile-first design approach with optimized admin modals
 - **Sales Analytics**: Date-filtered sales reports and statistics
 - **Message System**: Contact form with admin message management
-- **Category Management**: Organize products by categories
+- **Category Management**: Organize products by categories with image uploads
 - **Review System**: Customer reviews and ratings
+- **Password Security**: Toggle password visibility in admin settings
 
 ## Tech Stack
 
@@ -58,11 +60,24 @@ npm install
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+JWT_SECRET=your_jwt_secret_key
 CLIENT_URL=http://localhost:5173
+
+# Google OAuth (Optional)
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+
+# Cloudinary (Required for image uploads)
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# SMS Providers (Optional - for order notifications)
+# Choose one or leave empty for development mode
+TWILIO_ACCOUNT_SID=your_twilio_account_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=your_twilio_phone_number
 ```
 
 4. Start the backend server:
@@ -138,6 +153,10 @@ SparkGlow/
 - `GET /api/admin/users` - Manage users
 - `GET /api/admin/sales` - Sales analytics
 - `GET /api/admin/messages` - View messages
+- `GET /api/admin/hero-banners` - Manage hero banners
+- `POST /api/admin/hero-banners` - Create hero banner
+- `PUT /api/admin/hero-banners/:id` - Update hero banner
+- `DELETE /api/admin/hero-banners/:id` - Delete hero banner
 
 ## Currency
 

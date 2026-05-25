@@ -21,7 +21,7 @@ export function SocketProvider({ children }) {
     })
 
     newSocket.on('connect', () => {
-      console.log('Socket connected')
+      // Socket connected
       
       // Join appropriate room based on user role
       if (user) {
@@ -38,11 +38,11 @@ export function SocketProvider({ children }) {
     })
 
     newSocket.on('disconnect', (reason) => {
-      console.log('Socket disconnected:', reason)
+      // Socket disconnected
     })
 
     newSocket.on('reconnect', (attemptNumber) => {
-      console.log('Socket reconnected after', attemptNumber, 'attempts')
+      // Socket reconnected
     })
 
     setSocket(newSocket)

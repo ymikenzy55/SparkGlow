@@ -47,4 +47,11 @@ router.delete('/messages/:id', ctrl.deleteMessage);
 // Sales
 router.get('/sales', ctrl.getSales);
 
+// Hero Banners
+const heroCtrl = require('../controllers/heroBannerController');
+router.get('/hero-banners', heroCtrl.getAllHeroBanners);
+router.post('/hero-banners', upload.single('image'), heroCtrl.createHeroBanner);
+router.put('/hero-banners/:id', upload.single('image'), heroCtrl.updateHeroBanner);
+router.delete('/hero-banners/:id', heroCtrl.deleteHeroBanner);
+
 module.exports = router;

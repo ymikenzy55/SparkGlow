@@ -62,20 +62,16 @@ export default function AdminCategories() {
       
       // Handle image upload
       if (imageFile) {
-        console.log('Uploading new image file:', imageFile.name)
         formData.append('image', imageFile)
       } else if (form.image && !imageFile) {
-        console.log('Keeping existing image:', form.image)
         // Keep existing image if no new file selected
         formData.append('existingImage', form.image)
       }
       
       if (editing) {
-        console.log('Updating category:', editing._id)
         await adminAPI.updateCategory(editing._id, formData)
         toast.success('Category updated!')
       } else {
-        console.log('Creating new category')
         await adminAPI.createCategory(formData)
         toast.success('Category created!')
       }

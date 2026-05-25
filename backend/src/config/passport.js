@@ -25,13 +25,11 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log('Google OAuth Profile:', profile.id, profile.emails[0].value);
 
         // Check if user already exists with Google ID
         let user = await User.findOne({ googleId: profile.id });
 
         if (user) {
-          console.log('Existing Google user found:', user.email);
           return done(null, user);
         }
 
@@ -40,7 +38,6 @@ passport.use(
         user = await User.findOne({ email });
 
         if (user) {
-          console.log('Linking Google account to existing user:', user.email);
           // Link Google account to existing user
           user.googleId = profile.id;
           user.avatar = profile.photos[0]?.value || user.avatar;
@@ -50,7 +47,6 @@ passport.use(
         }
 
         // Create new user
-        console.log('Creating new Google user:', email);
         user = await User.create({
           googleId: profile.id,
           name: profile.displayName,
@@ -61,7 +57,6 @@ passport.use(
           role: 'user', // Default role
         });
 
-        console.log('New user created successfully:', user._id);
         done(null, user);
       } catch (error) {
         console.error('Google OAuth Error:', error);

@@ -24,7 +24,6 @@ const sendSMS = async (phone, message) => {
         to: formattedPhone,
       });
       
-      console.log('SMS sent via Twilio:', result.sid);
       return { success: true, provider: 'Twilio', sid: result.sid };
     }
 
@@ -48,7 +47,6 @@ const sendSMS = async (phone, message) => {
         }
       );
       
-      console.log('SMS sent via Hubtel');
       return { success: true, provider: 'Hubtel', data: response.data };
     }
 
@@ -71,7 +69,6 @@ const sendSMS = async (phone, message) => {
         }
       );
       
-      console.log('SMS sent via Arkesel');
       return { success: true, provider: 'Arkesel', data: response.data };
     }
 
@@ -96,12 +93,10 @@ const sendSMS = async (phone, message) => {
         }
       );
       
-      console.log('SMS sent via Termii');
       return { success: true, provider: 'Termii', data: response.data };
     }
 
     // No SMS provider configured
-    console.log('SMS not configured. Would send to', formattedPhone, ':', message);
     return { success: true, message: 'SMS credentials not configured (development mode)' };
     
   } catch (error) {

@@ -52,22 +52,19 @@ app.set('io', io);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
 
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    // Client disconnected
   });
 
   // Join admin room
   socket.on('join-admin', () => {
     socket.join('admin-room');
-    console.log('Admin joined:', socket.id);
   });
 
   // Join user room
   socket.on('join-user', (userId) => {
     socket.join(`user-${userId}`);
-    console.log('User joined:', userId);
   });
 });
 
@@ -77,6 +74,7 @@ app.use('/api/categories', require('./src/routes/categories'));
 app.use('/api/orders', require('./src/routes/orders'));
 app.use('/api/admin', require('./src/routes/admin'));
 app.use('/api/messages', require('./src/routes/messages'));
+app.use('/api/hero-banners', require('./src/routes/heroBanners'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', app: 'SparkGlow API' }));
 app.use(errorHandler);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
-import { FiGrid, FiBox, FiShoppingBag, FiUsers, FiTag, FiMenu, FiX, FiLogOut, FiBell, FiSettings, FiMail, FiExternalLink } from 'react-icons/fi'
+import { FiGrid, FiBox, FiShoppingBag, FiUsers, FiTag, FiMenu, FiX, FiLogOut, FiBell, FiSettings, FiMail, FiExternalLink, FiImage } from 'react-icons/fi'
 import { GiCash } from 'react-icons/gi'
 import toast from 'react-hot-toast'
 import { useAuth } from '../../context/AuthContext'
@@ -14,6 +14,7 @@ const navItems = [
   { to: 'users', icon: FiUsers, label: 'Users' },
   { to: 'categories', icon: FiTag, label: 'Categories' },
   { to: 'messages', icon: FiMail, label: 'Messages' },
+  { to: 'hero-banners', icon: FiImage, label: 'Hero Banners' },
   { to: 'settings', icon: FiSettings, label: 'Settings' },
 ]
 

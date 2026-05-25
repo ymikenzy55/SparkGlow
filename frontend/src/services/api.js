@@ -57,6 +57,10 @@ export const messageAPI = {
   markRepliesRead: () => api.put('/messages/mine/read'),
 }
 
+export const heroBannerAPI = {
+  getAll: () => api.get('/hero-banners'),
+}
+
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   getProducts: (params) => api.get('/admin/products', { params }),
@@ -114,4 +118,19 @@ export const adminAPI = {
   deleteMessage: (id) => api.delete(`/admin/messages/${id}`),
   // Sales
   getSales: (params) => api.get('/admin/sales', { params }),
+  // Hero Banners
+  getHeroBanners: () => api.get('/admin/hero-banners'),
+  createHeroBanner: (data) => {
+    if (data instanceof FormData) {
+      return api.post('/admin/hero-banners', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+    }
+    return api.post('/admin/hero-banners', data)
+  },
+  updateHeroBanner: (id, data) => {
+    if (data instanceof FormData) {
+      return api.put(`/admin/hero-banners/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
+    }
+    return api.put(`/admin/hero-banners/${id}`, data)
+  },
+  deleteHeroBanner: (id) => api.delete(`/admin/hero-banners/${id}`),
 }

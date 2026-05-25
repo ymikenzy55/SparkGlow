@@ -74,8 +74,6 @@ exports.googleCallback = async (req, res) => {
       console.error('No user in request after Google OAuth');
       return res.redirect(`${process.env.CLIENT_URL}/login?error=no_user`);
     }
-
-    console.log('Google OAuth successful for user:', req.user.email);
     
     // User is authenticated via passport
     const token = signToken(req.user._id);
@@ -93,8 +91,6 @@ exports.googleCallback = async (req, res) => {
         }
       });
     }
-    
-    console.log('JWT token generated, redirecting to frontend');
     
     // Redirect to frontend with token
     res.redirect(`${process.env.CLIENT_URL}/auth/google/success?token=${token}`);
