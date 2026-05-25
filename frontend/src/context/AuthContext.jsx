@@ -7,6 +7,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [initialCheckDone, setInitialCheckDone] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('sg_token')
@@ -23,9 +24,13 @@ export function AuthProvider({ children }) {
           console.error('Failed to fetch user:', err)
           localStorage.removeItem('sg_token')
         })
-        .finally(() => setLoading(false))
+        .finally(() => {
+          setLoading(false)
+          setInitialCheckDone(true)
+        })
     } else {
       setLoading(false)
+      setInitialCheckDone(true)
     }
   }, [])
 
@@ -54,7 +59,7 @@ export function AuthProvider({ children }) {
   const updateUser = (u) => setUser(u)
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, register, logout, updateUser, initialCheckDone }}>
       {children}
     </AuthContext.Provider>
   )

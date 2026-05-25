@@ -97,8 +97,11 @@ function CheckoutLayout() {
 }
 
 function ProtectedRoute({ children, adminOnly = false }) {
-  const { user, loading } = useAuth()
-  if (loading) return <LoadingSpinner fullPage />
+  const { user, loading, initialCheckDone } = useAuth()
+  
+  // Only show loading spinner on initial auth check, not on navigation
+  if (!initialCheckDone) return <LoadingSpinner fullPage />
+  
   if (!user) return <Navigate to="/login" replace />
   if (adminOnly && user.role !== 'admin' && user.role !== 'superadmin') return <Navigate to="/" replace />
   return children
